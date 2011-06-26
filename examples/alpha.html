@@ -1,0 +1,161 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang='en' xml:lang='en' xmlns='http://www.w3.org/1999/xhtml'>
+  <head>
+    <meta content='text/html; charset=utf-8' http-equiv='Content-Type' />  
+    <title>Sankey Javascript Demo: Spread effort 2050 Pathway</title>
+    <script src="../ext/raphael.js" type="text/javascript"></script>
+    <script src="../ext/jquery.js" type="text/javascript"></script>
+    <script src="../js/sankey.js" type="text/javascript"></script>    
+  </head>
+  <body>
+    <script type='text/javascript'>
+      $(document).ready(function() {
+      var raw_data = [["Coal reserves",0.0,"Coal"],["Coal imports",0.0,"Coal"],["Oil reserves",0.0,"Oil"],["Oil imports",0.0,"Oil"],["Gas reserves",0.0,"Ngas"],["Gas imports",0.0,"Ngas"],["UK land based bioenergy",0.0,"Bio-conversion"],["Marine algae",0.0,"Bio-conversion"],["Agricultural 'waste'",0.0,"Bio-conversion"],["Other waste",0.0,"Bio-conversion"],["Other waste",0.0,"Solid"],["Biomass imports",0.0,"Solid"],["Biofuel imports",0.0,"Liquid"],["Coal",0.0,"Solid"],["Oil",0.0,"Liquid"],["Ngas",0.0,"Gas"],["Solar",0.0,"Solar PV"],["Solar PV",0.0,"Electricity grid"],["Solar",0.0,"Solar Thermal"],[0.0,0.0,0.0],["Bio-conversion",0.0,"Solid"],["Bio-conversion",0.0,"Liquid"],["Bio-conversion",0.0,"Gas"],["Bio-conversion",0.0,"Losses"],["Solid",0.0,"Over generation / exports"],["Liquid",0.0,"Over generation / exports"],["Gas",0.0,"Over generation / exports"],["Solid",0.0,"Thermal generation"],["Liquid",0.0,"Thermal generation"],["Gas",0.0,"Thermal generation"],["Nuclear",0.0,"Thermal generation"],["Thermal generation",0.0,"District heating"],["Thermal generation",0.0,"Electricity grid"],["Thermal generation",0.0,"Losses"],["Solid",0.0,"CHP"],["Liquid",0.0,"CHP"],["Gas",0.0,"CHP"],["CHP",0.0,"Electricity grid"],["CHP",0.0,"Losses"],["Electricity imports",0.0,"Electricity grid"],["Wind",0.0,"Electricity grid"],["Tidal",0.0,"Electricity grid"],["Wave",0.0,"Electricity grid"],["Geothermal",0.0,"Electricity grid"],["Hydro",0.0,"Electricity grid"],["Electricity grid",0.0,"H2 conversion"],["Electricity grid",0.0,"Over generation / exports"],["Electricity grid",0.0,"Losses"],["Gas",0.0,"H2 conversion"],["H2 conversion",0.0,"H2"],["H2 conversion",0.0,"Losses"],["Solar Thermal",0.0,"Heating and cooling - homes"],["H2",0.0,"Road transport"],["Pumped heat",0.0,"Heating and cooling - homes"],["Pumped heat",0.0,"Heating and cooling - commercial"],["CHP",0.0,"Heating and cooling - homes"],["CHP",0.0,"Heating and cooling - commercial"],["District heating",0.0,"Heating and cooling - homes"],["District heating",0.0,"Heating and cooling - commercial"],["District heating",0.0,"Industry"],["District heating",0.0,"Losses"],["Electricity grid",0.0,"Heating and cooling - homes"],["Solid",0.0,"Heating and cooling - homes"],["Liquid",0.0,"Heating and cooling - homes"],["Gas",0.0,"Heating and cooling - homes"],["Electricity grid",0.0,"Heating and cooling - commercial"],["Solid",0.0,"Heating and cooling - commercial"],["Liquid",0.0,"Heating and cooling - commercial"],["Gas",0.0,"Heating and cooling - commercial"],["Electricity grid",0.0,"Lighting & appliances - homes"],["Gas",0.0,"Lighting & appliances - homes"],["Electricity grid",0.0,"Lighting & appliances - commercial"],["Gas",0.0,"Lighting & appliances - commercial"],["Electricity grid",0.0,"Industry"],["Solid",0.0,"Industry"],["Liquid",0.0,"Industry"],["Gas",0.0,"Industry"],["Electricity grid",0.0,"Agriculture"],["Solid",0.0,"Agriculture"],["Liquid",0.0,"Agriculture"],["Gas",0.0,"Agriculture"],["Electricity grid",0.0,"Road transport"],["Liquid",0.0,"Road transport"],["Electricity grid",0.0,"Rail transport"],["Liquid",0.0,"Rail transport"],["Liquid",0.0,"Domestic aviation"],["Liquid",0.0,"National navigation"],["Liquid",0.0,"International aviation"],["Liquid",0.0,"International shipping"],["Electricity grid",0.0,"Geosequestration"],["Gas",0.0,"Losses"]];
+      sankey = new Sankey();
+      sankey.setData(raw_data);
+      sankey.stack(0,[
+      "Pumped heat",
+      "Solar",
+      "Wind",
+      "Tidal",
+      "Wave",
+      "Geothermal",
+      "Hydro",
+      "Electricity imports",
+      "Nuclear",
+      "Coal reserves",
+      "Coal imports",
+      "Biomass imports",
+      "Oil reserves",
+      "Oil imports",
+      "Biofuel imports",
+      "Gas reserves",
+      "Gas imports",
+      "UK land based bioenergy",
+      "Agricultural 'waste'",
+      "Other waste",
+      "Marine algae"
+      ]);
+      
+      sankey.stack(1,["Coal"],sankey.boxes["Coal reserves"].y);
+      sankey.stack(1,["Oil"],sankey.boxes["Oil reserves"].y);
+      sankey.stack(1,["Ngas"],sankey.boxes["Gas reserves"].y);
+      sankey.stack(1,["Bio-conversion"],sankey.boxes["UK land based bioenergy"].y);
+      
+      sankey.stack(2,["Solar Thermal", "Solar PV"],sankey.boxes["Solar"].y);
+      sankey.stack(2,[
+      "Solid",
+      "Liquid",
+      "Gas"
+      ],sankey.boxes["Coal"].y);
+      
+      sankey.stack(3,[
+      "Thermal generation",
+      "CHP"
+      ],sankey.boxes["Nuclear"].y);
+      
+      sankey.stack(4,["Electricity grid","District heating"],sankey.boxes["Wind"].y);
+      
+      sankey.stack(5,["H2 conversion"],sankey.boxes["Electricity grid"].y);
+      
+      sankey.stack(6,["H2"],sankey.boxes["H2 conversion"].y);
+      
+      sankey.stack(7,[
+      "Heating and cooling - homes",
+      "Heating and cooling - commercial",
+      "Lighting & appliances - homes",
+      "Lighting & appliances - commercial",
+      "Industry",
+      "Road transport",
+      "Rail transport",
+      "Domestic aviation",
+      "International aviation",
+      "National navigation",
+      "International shipping",
+      "Agriculture",
+      "Geosequestration",
+      "Over generation / exports",
+      //"Exports",
+      "Losses"
+      ]);
+      
+      // Nudge
+      sankey.boxes["Losses"].y = (sankey.boxes["Marine algae"].b() - sankey.boxes["Losses"].size());
+      // sankey.boxes["Exports"].y = (sankey.boxes["Losses"].y - sankey.boxes["Exports"].size() - y_space);
+      // sankey.boxes["Over generation / exports"].y = (sankey.boxes["Exports"].y - sankey.boxes["Over generation / exports"].size() - y_space);
+      
+      // Colours
+      sankey.setColors({
+        "Coal reserves":"#8F6F38",
+        "Coal":"#8F6F38", 
+        "Coal imports":"#8F6F38",
+        
+        "Oil reserves":"#A99268", 
+        "Oil":"#A99268", 
+        "Oil imports":"#A99268", 
+        
+        "Gas reserves":"#DDD4C4", 
+        "Ngas":"#DDD4C4", 
+        "Gas imports":"#DDD4C4", 
+        
+        "Solar":"#F6FF00", 
+        "Solar Thermal":"#F6FF00",
+        "Solar PV":"#F6FF00",
+        
+        "UK land based bioenergy":"#30FF00", 
+        "Bio-conversion":"#30FF00", 
+        "Marine algae":"#30FF00", 
+        "Agricultural 'waste'":"#30FF00", 
+        "Other waste":"#30FF00", 
+        "Biomass imports":"#30FF00", 
+        "Biofuel imports":"#30FF00", 
+        
+        "Solid":"#557731", 
+        "Liquid":"#7D9763", 
+        "Gas":"#BCC2AD", 
+        
+        "Electricity grid":"#0000FF",
+        "Thermal generation":"#0000FF", 
+        "CHP":"#FF0000", 
+        "Nuclear":"#E2ABDB", 
+        
+        "District heating":"#FF0000", 
+        "Pumped heat":"#FF0000", 
+        "Useful district heat":"#FF0000",
+        "CHP Heat":"#FF0000",
+        
+        
+        "Electricity imports":"#0000FF", 
+        "Wind":"#C7E7E6", 
+        "Tidal":"#C7E7E6", 
+        "Wave":"#C7E7E6", 
+        "Geothermal":"#C7E7E6", 
+        "Hydro":"#C7E7E6", 
+        
+        "H2 conversion":"#FF6FCF", 
+        "Final electricity":"#0000FF", 
+        "Over generation / exports":"#0000FF", 
+        "H2":"#FF6FCF" 
+      });
+      
+      
+      // Add the emissions
+      // sankey.boxes["Thermal generation"].ghg = 100;
+      // sankey.boxes["CHP"].ghg = 10;
+      // sankey.boxes["UK land based bioenergy"].ghg = -100;
+      // sankey.boxes["Heating and cooling - homes"].ghg = 20;
+      
+      // Fix some of the colours
+      sankey.recolour(sankey.boxes["Losses"].left_lines,"#AAAAAA");
+      sankey.recolour(sankey.boxes["District heating"].left_lines,"#FF0000");
+      sankey.recolour(sankey.boxes["Electricity grid"].left_lines,"#0000FF");
+      
+      sankey.draw();
+    });
+      
+    </script>
+    <div id='sankey'>
+      &nbsp;
+    </div>
+  </body>
+</html>
