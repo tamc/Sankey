@@ -98,15 +98,17 @@
         box = _ref5[_k];
         box.position_and_colour_lines();
       }
-      return (_ref6 = this.nudge_colours) != null ? _ref6.call(this) : void 0;
+      if ((_ref6 = this.nudge_colours) != null) {
+        _ref6.call(this);
+      }
+      return this.line_array.sort(function(a, b) {
+        return b.size - a.size;
+      });
     };
     Sankey.prototype.draw = function() {
       var box, line, r, _i, _j, _len, _len2, _ref, _ref2, _results;
       this.position_boxes_and_lines();
       r = Raphael(this.display_in_element, this.display_width, this.display_height);
-      this.line_array.sort(function(a, b) {
-        return b.size - a.size;
-      });
       _ref = this.line_array;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         line = _ref[_i];
@@ -355,7 +357,7 @@
       return _results;
     };
     TransformationBox.prototype.draw = function(r) {
-      var box_width, transformation_box, _ref;
+      var box_width, _ref;
       box_width = this.sankey.box_width;
       this.box = r.rect(this.x, this.y, box_width, this.size()).attr({
         'fill': "#E8E2FF",
@@ -386,7 +388,6 @@
       }
       this.number_label = r.text(this.x + (box_width / 2), this.y - 5, Math.round(this.size() / this.sankey.TWh));
       this.number_label.hide();
-      transformation_box = this;
       return r.set().push(this.number_label, this.label, this.box).hover(this.hover_start, this.hover_end);
     };
     TransformationBox.prototype.hover_start = function() {

@@ -83,17 +83,17 @@ class Sankey
       box.position_and_colour_lines()
       
     @nudge_colours?.call(this)
+    
+    @line_array.sort( (a,b) -> 
+       b.size - a.size
+    )
       
   # Acually do the drawing
   draw: () ->
     @position_boxes_and_lines()
     
     r = Raphael(@display_in_element,@display_width,@display_height)
-      
-    @line_array.sort( (a,b) -> 
-      b.size - a.size
-    )
-
+  
     #  Draw the lines
     for line in @line_array
       if line.size > @threshold_for_drawing
@@ -271,7 +271,6 @@ class TransformationBox
   
     @number_label = r.text(@x+(box_width/2),@y-5,Math.round(@size()/@sankey.TWh))
     @number_label.hide()
-    transformation_box = this
 
     r.set().push(@number_label,@label,@box).hover(@hover_start,@hover_end)
     
