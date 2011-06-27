@@ -87,7 +87,7 @@ class Sankey
 class EnergyLine 
   constructor: (@sankey,left_box_name,@energy,right_box_name) ->
     @size = energy*@sankey.TWh
-    @colour = 'orange'
+    @colour = undefined
     @ox = 0
     @oy = 0
     @dx = 0
@@ -221,7 +221,7 @@ class TransformationBox
     )
     box_width = @sankey.box_width
     for line in right_lines
-      line.colour = @line_colour
+      line.colour?= @line_colour
       line.ox = @x + box_width
       line.oy = ry + (line.size/2)
       ry = ry + (line.size)

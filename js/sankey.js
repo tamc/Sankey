@@ -110,7 +110,7 @@
       this.hover_stop = __bind(this.hover_stop, this);
       this.hover_start = __bind(this.hover_start, this);
       this.size = energy * this.sankey.TWh;
-      this.colour = 'orange';
+      this.colour = void 0;
       this.ox = 0;
       this.oy = 0;
       this.dx = 0;
@@ -293,7 +293,7 @@
       return s;
     };
     TransformationBox.prototype.position_and_colour_lines = function() {
-      var box_width, left_lines, line, ly, right_lines, ry, _i, _j, _len, _len2, _results;
+      var box_width, left_lines, line, ly, right_lines, ry, _i, _j, _len, _len2, _ref, _results;
       ly = this.y;
       left_lines = this.left_lines;
       left_lines.sort(function(a, b) {
@@ -314,7 +314,11 @@
       _results = [];
       for (_j = 0, _len2 = right_lines.length; _j < _len2; _j++) {
         line = right_lines[_j];
-        line.colour = this.line_colour;
+                if ((_ref = line.colour) != null) {
+          _ref;
+        } else {
+          line.colour = this.line_colour;
+        };
         line.ox = this.x + box_width;
         line.oy = ry + (line.size / 2);
         _results.push(ry = ry + line.size);
