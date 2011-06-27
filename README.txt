@@ -3,7 +3,7 @@ A javascript library for drawing Sankey diagrams.
 
 DEPENDENCIES
 raphael.js
-jquery.js (for the examples, not for the library itself)
+jquery.js
 
 USAGE
 
