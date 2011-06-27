@@ -48,7 +48,7 @@ class Sankey
   setData: (data) ->
     for datum in data
       if datum[0] != 0
-        new_line = new EnergyLine(sankey,datum[0],datum[1],datum[2])
+        new_line = new FlowLine(sankey,datum[0],datum[1],datum[2])
         @lines[datum[0]+"-"+datum[2]] = new_line
         @line_array.push(new_line)
 
@@ -131,7 +131,7 @@ class Sankey
       box.un_fade()
       undefined
             
-class EnergyLine 
+class FlowLine 
   constructor: (@sankey,left_box_name,@energy,right_box_name) ->
     @size = energy*@sankey.TWh
     @colour = undefined

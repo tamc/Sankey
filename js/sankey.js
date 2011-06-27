@@ -1,5 +1,5 @@
 (function() {
-  var EnergyLine, Sankey, TransformationBox;
+  var FlowLine, Sankey, TransformationBox;
   var __hasProp = Object.prototype.hasOwnProperty, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   Sankey = (function() {
     function Sankey() {
@@ -36,7 +36,7 @@
       _results = [];
       for (_i = 0, _len = data.length; _i < _len; _i++) {
         datum = data[_i];
-        _results.push(datum[0] !== 0 ? (new_line = new EnergyLine(sankey, datum[0], datum[1], datum[2]), this.lines[datum[0] + "-" + datum[2]] = new_line, this.line_array.push(new_line)) : void 0);
+        _results.push(datum[0] !== 0 ? (new_line = new FlowLine(sankey, datum[0], datum[1], datum[2]), this.lines[datum[0] + "-" + datum[2]] = new_line, this.line_array.push(new_line)) : void 0);
       }
       return _results;
     };
@@ -176,8 +176,8 @@
     };
     return Sankey;
   })();
-  EnergyLine = (function() {
-    function EnergyLine(sankey, left_box_name, energy, right_box_name) {
+  FlowLine = (function() {
+    function FlowLine(sankey, left_box_name, energy, right_box_name) {
       this.sankey = sankey;
       this.energy = energy;
       this.hover_stop = __bind(this.hover_stop, this);
@@ -193,7 +193,7 @@
       this.left_box.right_lines.push(this);
       this.right_box.left_lines.push(this);
     }
-    EnergyLine.prototype.draw = function(r) {
+    FlowLine.prototype.draw = function(r) {
       var curve, flow_edge_width, flow_path, inner_colour, inner_width;
       curve = (this.dx - this.ox) * this.sankey.flow_curve;
       flow_edge_width = this.sankey.flow_edge_width;
@@ -223,15 +223,15 @@
       });
       return r.set().push(this.inner_line, this.outer_line).hover(this.hover_start, this.hover_stop);
     };
-    EnergyLine.prototype.hover_start = function(event) {
+    FlowLine.prototype.hover_start = function(event) {
       this.highlight(true, true);
       return this.sankey.fade_unless_highlighted();
     };
-    EnergyLine.prototype.hover_stop = function(event) {
+    FlowLine.prototype.hover_stop = function(event) {
       this.un_highlight(true, true);
       return this.sankey.un_fade();
     };
-    EnergyLine.prototype.redraw = function(r) {
+    FlowLine.prototype.redraw = function(r) {
       var curve, flow_edge_width, flow_path, inner_width;
       if (this.outer_line == null) {
         this.draw(r);
@@ -253,7 +253,7 @@
         'stroke-width': inner_width
       });
     };
-    EnergyLine.prototype.fade_unless_highlighted = function() {
+    FlowLine.prototype.fade_unless_highlighted = function() {
       if (this.outer_line == null) {
         return false;
       }
@@ -270,7 +270,7 @@
         'opacity': '0.1'
       });
     };
-    EnergyLine.prototype.un_fade = function() {
+    FlowLine.prototype.un_fade = function() {
       if (this.outer_line == null) {
         return false;
       }
@@ -287,7 +287,7 @@
         'opacity': '1.0'
       });
     };
-    EnergyLine.prototype.highlight = function(left, right) {
+    FlowLine.prototype.highlight = function(left, right) {
       if (this.outer_line == null) {
         return false;
       }
@@ -306,7 +306,7 @@
         return this.right_box.highlight();
       }
     };
-    EnergyLine.prototype.un_highlight = function(left, right) {
+    FlowLine.prototype.un_highlight = function(left, right) {
       if (this.outer_line == null) {
         return false;
       }
@@ -320,7 +320,7 @@
         return this.right_box.un_highlight();
       }
     };
-    return EnergyLine;
+    return FlowLine;
   })();
   TransformationBox = (function() {
     function TransformationBox(sankey, name) {
