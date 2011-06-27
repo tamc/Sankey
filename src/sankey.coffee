@@ -115,22 +115,21 @@ class EnergyLine
     else
      inner_width = @size
     @inner_line = r.path(flow_path).attr({'stroke-width':inner_width, 'stroke':@inner_colour})
-    energy_line = this
-    r.set().push(@inner_line,@outer_line).hover(
-      (event) ->
-        energy_line.highlight(true,true)
-        for own name, line of energy_line.sankey.lines
-          line.fade_unless_highlighted() 
-        for own name, box of energy_line.sankey.boxes
-          box.fade_unless_highlighted()
-      ,
-      (event) ->
-        energy_line.un_highlight(true,true)
-        for own name, line of energy_line.sankey.lines
-          line.un_fade()
-        for own name, box of energy_line.sankey.boxes
-          box.un_fade()
-    )
+    r.set().push(@inner_line,@outer_line).hover(@hover_start,@hover_stop)
+    
+  hover_start: (event) =>
+    @highlight(true,true)
+    for own name, line of @sankey.lines
+      line.fade_unless_highlighted() 
+    for own name, box of @sankey.boxes
+      box.fade_unless_highlighted()
+
+  hover_stop: (event) =>
+    @un_highlight(true,true)
+    for own name, line of @sankey.lines
+      line.un_fade()
+    for own name, box of @sankey.boxes
+      box.un_fade()
 
   fade_unless_highlighted: () ->
     return false unless @outer_line?

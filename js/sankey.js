@@ -1,6 +1,6 @@
 (function() {
   var EnergyLine, Sankey, TransformationBox;
-  var __hasProp = Object.prototype.hasOwnProperty;
+  var __hasProp = Object.prototype.hasOwnProperty, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   Sankey = (function() {
     function Sankey() {
       this.display_in_element = 'sankey';
@@ -105,7 +105,8 @@
   })();
   EnergyLine = (function() {
     function EnergyLine(sankey, left_box_name, energy, right_box_name) {
-      this.sankey = sankey;
+      this.hover_stop = __bind(this.hover_stop, this);
+      this.hover_start = __bind(this.hover_start, this);      this.sankey = sankey;
       this.energy = energy;
       this.size = energy * this.sankey.TWh;
       this.colour = 'orange';
@@ -119,7 +120,7 @@
       this.right_box.left_lines.push(this);
     }
     EnergyLine.prototype.draw = function(r) {
-      var curve, energy_line, flow_edge_width, flow_path, inner_width;
+      var curve, flow_edge_width, flow_path, inner_width;
       curve = (this.dx - this.ox) * this.sankey.flow_curve;
       flow_edge_width = this.sankey.flow_edge_width;
       this.inner_colour = Raphael.rgb2hsb(this.colour);
@@ -146,42 +147,43 @@
         'stroke-width': inner_width,
         'stroke': this.inner_colour
       });
-      energy_line = this;
-      return r.set().push(this.inner_line, this.outer_line).hover(function(event) {
-        var box, line, name, _ref, _ref2, _results;
-        energy_line.highlight(true, true);
-        _ref = energy_line.sankey.lines;
-        for (name in _ref) {
-          if (!__hasProp.call(_ref, name)) continue;
-          line = _ref[name];
-          line.fade_unless_highlighted();
-        }
-        _ref2 = energy_line.sankey.boxes;
-        _results = [];
-        for (name in _ref2) {
-          if (!__hasProp.call(_ref2, name)) continue;
-          box = _ref2[name];
-          _results.push(box.fade_unless_highlighted());
-        }
-        return _results;
-      }, function(event) {
-        var box, line, name, _ref, _ref2, _results;
-        energy_line.un_highlight(true, true);
-        _ref = energy_line.sankey.lines;
-        for (name in _ref) {
-          if (!__hasProp.call(_ref, name)) continue;
-          line = _ref[name];
-          line.un_fade();
-        }
-        _ref2 = energy_line.sankey.boxes;
-        _results = [];
-        for (name in _ref2) {
-          if (!__hasProp.call(_ref2, name)) continue;
-          box = _ref2[name];
-          _results.push(box.un_fade());
-        }
-        return _results;
-      });
+      return r.set().push(this.inner_line, this.outer_line).hover(this.hover_start, this.hover_stop);
+    };
+    EnergyLine.prototype.hover_start = function(event) {
+      var box, line, name, _ref, _ref2, _results;
+      this.highlight(true, true);
+      _ref = this.sankey.lines;
+      for (name in _ref) {
+        if (!__hasProp.call(_ref, name)) continue;
+        line = _ref[name];
+        line.fade_unless_highlighted();
+      }
+      _ref2 = this.sankey.boxes;
+      _results = [];
+      for (name in _ref2) {
+        if (!__hasProp.call(_ref2, name)) continue;
+        box = _ref2[name];
+        _results.push(box.fade_unless_highlighted());
+      }
+      return _results;
+    };
+    EnergyLine.prototype.hover_stop = function(event) {
+      var box, line, name, _ref, _ref2, _results;
+      this.un_highlight(true, true);
+      _ref = this.sankey.lines;
+      for (name in _ref) {
+        if (!__hasProp.call(_ref, name)) continue;
+        line = _ref[name];
+        line.un_fade();
+      }
+      _ref2 = this.sankey.boxes;
+      _results = [];
+      for (name in _ref2) {
+        if (!__hasProp.call(_ref2, name)) continue;
+        box = _ref2[name];
+        _results.push(box.un_fade());
+      }
+      return _results;
     };
     EnergyLine.prototype.fade_unless_highlighted = function() {
       if (this.outer_line == null) {
