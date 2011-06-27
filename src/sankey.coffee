@@ -5,6 +5,8 @@ class Sankey
     @display_in_element = 'sankey' 
     # The width of the sankey diagram, defaults to the width of the element
     @display_width = $('#sankey').width() # pixels
+    # The height of the sankey diagram, defaults to the height of the element
+    @display_height = $('#sankey').height() # pixels
     # Margin to left most box
     @left_margin = 100
     # Margin to right most box
@@ -41,7 +43,7 @@ class Sankey
   stack: (x,box_names,y = 10) ->
     for name in box_names
       box = @boxes[name]
-      if !box?
+      unless box?
         alert "Can't find transformation called #{name}"
       else
         box.y = y
@@ -50,9 +52,9 @@ class Sankey
     return y
     
   setColors: (colors) ->
-    for name in @boxes
-      @boxes[name].line_colour = colours[name]
-      @boxes[name].position_and_colour_lines()
+    for own name, box of @boxes
+      box.line_colour = colors[name]
+      box.position_and_colour_lines()
   
   recolour: (lines,new_colour) ->
     for line in lines
@@ -64,8 +66,9 @@ class Sankey
 
     # Want to draw the thickest lines first, so sort
     sorted_lines = []
-    for line in @lines
-      sorted_lines.push(lines[line])
+    for own name, line of @lines
+      sorted_lines.push(line)
+      undefined
       
     sorted_lines.sort( (a,b) -> 
       b.size - a.size
@@ -77,10 +80,10 @@ class Sankey
         line.draw(r)
 
     #  Draw the boxes over the top
-    for name in @boxes
-      if @boxes[name].size() > @threshold_for_drawing
-        @boxes[name].draw(r)
-    
+    for own name, box of @boxes
+      if box.size() > @threshold_for_drawing
+        box.draw(r)
+            
 class EnergyLine 
   constructor: (sankey,left_box_name,energy,right_box_name) ->
     @sankey = sankey
@@ -98,6 +101,7 @@ class EnergyLine
     
   draw: (r) ->
     curve = ((@dx-@ox) * @sankey.flow_curve)
+    flow_edge_width = @sankey.flow_edge_width
     @inner_colour = Raphael.rgb2hsb(@colour)
     @inner_colour.b = @inner_colour.b + 0.5
     @left_label = r.text((@ox+1),(@oy-(@size/2)-5),Math.round(@energy)).attr({'text-anchor':'start'})
@@ -106,42 +110,46 @@ class EnergyLine
     @right_label.hide()
     flow_path = "M "+@ox+","+@oy+" Q "+(@ox+curve)+","+@oy+" "+((@ox+@dx)/2)+","+((@oy+@dy)/2)+" Q "+(@dx-curve)+","+@dy+" "+@dx+","+@dy
     @outer_line = r.path(flow_path).attr({'stroke':@colour,'stroke-width':@size})
-    inner_width = @size > flow_edge_width ? @size - flow_edge_width : @size
+    if @size > flow_edge_width
+      inner_width = @size - flow_edge_width 
+    else
+     inner_width = @size
     @inner_line = r.path(flow_path).attr({'stroke-width':inner_width, 'stroke':@inner_colour})
     energy_line = this
     r.set().push(@inner_line,@outer_line).hover(
       (event) ->
         energy_line.highlight(true,true)
-        for line in lines
-          lines[line].fade_unless_highlighted() 
-        for box in boxes
-          boxes[box].fade_unless_highlighted()
+        for own name, line of energy_line.sankey.lines
+          line.fade_unless_highlighted() 
+        for own name, box of energy_line.sankey.boxes
+          box.fade_unless_highlighted()
       ,
       (event) ->
         energy_line.un_highlight(true,true)
-        for line in lines
-          lines[line].un_fade()
-        for box in boxes
-          boxes[box].un_fade()
+        for own name, line of energy_line.sankey.lines
+          line.un_fade()
+        for own name, box of energy_line.sankey.boxes
+          box.un_fade()
     )
 
   fade_unless_highlighted: () ->
-    return false if @outer_line == null
-    return false if @inner_line == null 
-    return false if @highlighed == true
+    return false unless @outer_line?
+    return false unless @inner_line?
+    return false if @highlighed is true
     @outer_line.attr({'opacity':'0.1'})
     @inner_line.attr({'opacity':'0.1'})
 
   un_fade: () ->
-    return false if @outer_line == null
-    return false if @inner_line == null
-    return false if @highlighed == true
+    return false unless @outer_line?
+    return false unless @inner_line?
+    return false if @highlighed is true
     @outer_line.attr({'opacity':'1.0'})
     @inner_line.attr({'opacity':'1.0'})
 
   highlight: (left,right) ->
-    return false if @outer_line == null
-    return false if @inner_line == null
+    return false unless @outer_line?
+    return false unless @inner_line?
+
     @highlighed = true
 
     if left
@@ -155,7 +163,7 @@ class EnergyLine
       @right_box.highlight() 
 
   un_highlight: (left,right) ->
-    return false if @outer_line == undefined
+    return false unless @outer_line?
     @highlighed = false
     if left
       @left_label.hide()
@@ -214,6 +222,7 @@ class TransformationBox
     right_lines.sort( (a,b) -> 
       a.right_box.y - b.right_box.y
     )
+    box_width = @sankey.box_width
     for line in right_lines
       line.colour = @line_colour
       line.ox = @x + box_width
@@ -221,6 +230,7 @@ class TransformationBox
       ry = ry + (line.size)
 
   draw: (r) ->
+    box_width = @sankey.box_width    
     @box = r.rect(@x,@y,box_width,@size()).attr({'fill':"#E8E2FF","stroke":"#D4CBF2"})
     if @is_left_box()
       @label = r.text(@x-3.0,@y+(@size()/2),@label_text).attr({'text-anchor':'end'})
@@ -232,8 +242,8 @@ class TransformationBox
     if @ghg != null
       @emissions_circle = r.circle(@x+box_width,@y,12).attr({'fill': (@ghg > 0 ? '#000' : '#0a0'),'stroke-width':0})
       @emissions_measure = r.text(@x+box_width,@y,@ghg).attr({'stroke':'#fff','text-anchor':'middle'})
-
-    @number_label = r.text(@x+(box_width/2),@y-5,Math.round(@size()/TWh))
+  
+    @number_label = r.text(@x+(box_width/2),@y-5,Math.round(@size()/@sankey.TWh))
     @number_label.hide()
     transformation_box = this
 
@@ -242,16 +252,18 @@ class TransformationBox
         transformation_box.highlight()
         transformation_box.number_label.toFront()
         transformation_box.number_label.show()
+        
         for line in transformation_box.left_lines
           line.highlight(true,false)
 
         for line in transformation_box.right_lines
           line.highlight(false,true)
 
-        for line in lines 
-          lines[line].fade_unless_highlighted()
-        for box in boxes 
-          boxes[box].fade_unless_highlighted()
+        for own name, line of transformation_box.sankey.lines
+          line.fade_unless_highlighted()
+          
+        for own name, box of transformation_box.sankey.boxes
+          box.fade_unless_highlighted()
       , 
       (event) ->
         transformation_box.un_highlight()
@@ -263,30 +275,30 @@ class TransformationBox
         for line in transformation_box.right_lines
           line.un_highlight(false,true)
 
-        for line in lines
-          lines[line].un_fade()
-          
-        for box in boxes
-          boxes[box].un_fade()
+        for own name, line of transformation_box.sankey.lines
+          line.un_fade()
+        
+        for own name, box of transformation_box.sankey.boxes
+          box.un_fade()
       )
 
   highlight: () ->
-    return false if @box == undefined
+    return false unless @box?
     @highlighed = true    
 
   un_highlight: () ->
-    return false if(@box == undefined)
+    return false unless @box?
     @highlighed = false    
 
   fade_unless_highlighted: () ->
-    return false if @box == undefined
-    return false if @highlighed == true
+    return false unless @box?
+    return false if @highlighed is true
     @box.attr({'opacity':'0.1'})
     @label.attr({'opacity':'0.1'})
 
   un_fade: () ->
-    return false if @box == undefined
-    return false if @highlighed == true
+    return false unless @box?
+    return false if @highlighed is true
     @box.attr({'opacity':'1.0'})
     @label.attr({'opacity':'1.0'})
 

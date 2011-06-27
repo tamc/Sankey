@@ -1,9 +1,11 @@
 (function() {
   var EnergyLine, Sankey, TransformationBox;
+  var __hasProp = Object.prototype.hasOwnProperty;
   Sankey = (function() {
     function Sankey() {
       this.display_in_element = 'sankey';
       this.display_width = $('#sankey').width();
+      this.display_height = $('#sankey').height();
       this.left_margin = 100;
       this.right_margin = 100;
       this.TWh = (this.display_width / 1000) * 0.1;
@@ -39,7 +41,7 @@
       for (_i = 0, _len = box_names.length; _i < _len; _i++) {
         name = box_names[_i];
         box = this.boxes[name];
-        if (!(box != null)) {
+        if (box == null) {
           alert("Can't find transformation called " + name);
         } else {
           box.y = y;
@@ -50,13 +52,14 @@
       return y;
     };
     Sankey.prototype.setColors = function(colors) {
-      var name, _i, _len, _ref, _results;
+      var box, name, _ref, _results;
       _ref = this.boxes;
       _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        name = _ref[_i];
-        this.boxes[name].line_colour = colours[name];
-        _results.push(this.boxes[name].position_and_colour_lines());
+      for (name in _ref) {
+        if (!__hasProp.call(_ref, name)) continue;
+        box = _ref[name];
+        box.line_colour = colors[name];
+        _results.push(box.position_and_colour_lines());
       }
       return _results;
     };
@@ -70,28 +73,31 @@
       return _results;
     };
     Sankey.prototype.draw = function() {
-      var line, name, r, sorted_lines, _i, _j, _k, _len, _len2, _len3, _ref, _ref2, _results;
+      var box, line, name, r, sorted_lines, _i, _len, _ref, _ref2, _results;
       r = Raphael(this.display_in_element, this.display_width, this.display_height);
       sorted_lines = [];
       _ref = this.lines;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        line = _ref[_i];
-        sorted_lines.push(lines[line]);
+      for (name in _ref) {
+        if (!__hasProp.call(_ref, name)) continue;
+        line = _ref[name];
+        sorted_lines.push(line);
+        void 0;
       }
       sorted_lines.sort(function(a, b) {
         return b.size - a.size;
       });
-      for (_j = 0, _len2 = sorted_lines.length; _j < _len2; _j++) {
-        line = sorted_lines[_j];
+      for (_i = 0, _len = sorted_lines.length; _i < _len; _i++) {
+        line = sorted_lines[_i];
         if (line.size > this.threshold_for_drawing) {
           line.draw(r);
         }
       }
       _ref2 = this.boxes;
       _results = [];
-      for (_k = 0, _len3 = _ref2.length; _k < _len3; _k++) {
-        name = _ref2[_k];
-        _results.push(this.boxes[name].size() > this.threshold_for_drawing ? this.boxes[name].draw(r) : void 0);
+      for (name in _ref2) {
+        if (!__hasProp.call(_ref2, name)) continue;
+        box = _ref2[name];
+        _results.push(box.size() > this.threshold_for_drawing ? box.draw(r) : void 0);
       }
       return _results;
     };
@@ -113,8 +119,9 @@
       this.right_box.left_lines.push(this);
     }
     EnergyLine.prototype.draw = function(r) {
-      var curve, energy_line, flow_path, inner_width, _ref;
+      var curve, energy_line, flow_edge_width, flow_path, inner_width;
       curve = (this.dx - this.ox) * this.sankey.flow_curve;
+      flow_edge_width = this.sankey.flow_edge_width;
       this.inner_colour = Raphael.rgb2hsb(this.colour);
       this.inner_colour.b = this.inner_colour.b + 0.5;
       this.left_label = r.text(this.ox + 1, this.oy - (this.size / 2) - 5, Math.round(this.energy)).attr({
@@ -130,47 +137,57 @@
         'stroke': this.colour,
         'stroke-width': this.size
       });
-      inner_width = (_ref = this.size > flow_edge_width) != null ? _ref : this.size - {
-        flow_edge_width: this.size
-      };
+      if (this.size > flow_edge_width) {
+        inner_width = this.size - flow_edge_width;
+      } else {
+        inner_width = this.size;
+      }
       this.inner_line = r.path(flow_path).attr({
         'stroke-width': inner_width,
         'stroke': this.inner_colour
       });
       energy_line = this;
       return r.set().push(this.inner_line, this.outer_line).hover(function(event) {
-        var box, line, _i, _j, _len, _len2, _results;
+        var box, line, name, _ref, _ref2, _results;
         energy_line.highlight(true, true);
-        for (_i = 0, _len = lines.length; _i < _len; _i++) {
-          line = lines[_i];
-          lines[line].fade_unless_highlighted();
+        _ref = energy_line.sankey.lines;
+        for (name in _ref) {
+          if (!__hasProp.call(_ref, name)) continue;
+          line = _ref[name];
+          line.fade_unless_highlighted();
         }
+        _ref2 = energy_line.sankey.boxes;
         _results = [];
-        for (_j = 0, _len2 = boxes.length; _j < _len2; _j++) {
-          box = boxes[_j];
-          _results.push(boxes[box].fade_unless_highlighted());
+        for (name in _ref2) {
+          if (!__hasProp.call(_ref2, name)) continue;
+          box = _ref2[name];
+          _results.push(box.fade_unless_highlighted());
         }
         return _results;
       }, function(event) {
-        var box, line, _i, _j, _len, _len2, _results;
+        var box, line, name, _ref, _ref2, _results;
         energy_line.un_highlight(true, true);
-        for (_i = 0, _len = lines.length; _i < _len; _i++) {
-          line = lines[_i];
-          lines[line].un_fade();
+        _ref = energy_line.sankey.lines;
+        for (name in _ref) {
+          if (!__hasProp.call(_ref, name)) continue;
+          line = _ref[name];
+          line.un_fade();
         }
+        _ref2 = energy_line.sankey.boxes;
         _results = [];
-        for (_j = 0, _len2 = boxes.length; _j < _len2; _j++) {
-          box = boxes[_j];
-          _results.push(boxes[box].un_fade());
+        for (name in _ref2) {
+          if (!__hasProp.call(_ref2, name)) continue;
+          box = _ref2[name];
+          _results.push(box.un_fade());
         }
         return _results;
       });
     };
     EnergyLine.prototype.fade_unless_highlighted = function() {
-      if (this.outer_line === null) {
+      if (this.outer_line == null) {
         return false;
       }
-      if (this.inner_line === null) {
+      if (this.inner_line == null) {
         return false;
       }
       if (this.highlighed === true) {
@@ -184,10 +201,10 @@
       });
     };
     EnergyLine.prototype.un_fade = function() {
-      if (this.outer_line === null) {
+      if (this.outer_line == null) {
         return false;
       }
-      if (this.inner_line === null) {
+      if (this.inner_line == null) {
         return false;
       }
       if (this.highlighed === true) {
@@ -201,10 +218,10 @@
       });
     };
     EnergyLine.prototype.highlight = function(left, right) {
-      if (this.outer_line === null) {
+      if (this.outer_line == null) {
         return false;
       }
-      if (this.inner_line === null) {
+      if (this.inner_line == null) {
         return false;
       }
       this.highlighed = true;
@@ -220,7 +237,7 @@
       }
     };
     EnergyLine.prototype.un_highlight = function(left, right) {
-      if (this.outer_line === void 0) {
+      if (this.outer_line == null) {
         return false;
       }
       this.highlighed = false;
@@ -273,7 +290,7 @@
       return s;
     };
     TransformationBox.prototype.position_and_colour_lines = function() {
-      var left_lines, line, ly, right_lines, ry, _i, _j, _len, _len2, _results;
+      var box_width, left_lines, line, ly, right_lines, ry, _i, _j, _len, _len2, _results;
       ly = this.y;
       left_lines = this.left_lines;
       left_lines.sort(function(a, b) {
@@ -290,6 +307,7 @@
       right_lines.sort(function(a, b) {
         return a.right_box.y - b.right_box.y;
       });
+      box_width = this.sankey.box_width;
       _results = [];
       for (_j = 0, _len2 = right_lines.length; _j < _len2; _j++) {
         line = right_lines[_j];
@@ -301,7 +319,8 @@
       return _results;
     };
     TransformationBox.prototype.draw = function(r) {
-      var transformation_box, _ref;
+      var box_width, transformation_box, _ref;
+      box_width = this.sankey.box_width;
       this.box = r.rect(this.x, this.y, box_width, this.size()).attr({
         'fill': "#E8E2FF",
         "stroke": "#D4CBF2"
@@ -329,11 +348,11 @@
           'text-anchor': 'middle'
         });
       }
-      this.number_label = r.text(this.x + (box_width / 2), this.y - 5, Math.round(this.size() / TWh));
+      this.number_label = r.text(this.x + (box_width / 2), this.y - 5, Math.round(this.size() / this.sankey.TWh));
       this.number_label.hide();
       transformation_box = this;
       return r.set().push(this.number_label, this.label, this.box).hover(function(event) {
-        var box, line, _i, _j, _k, _l, _len, _len2, _len3, _len4, _ref2, _ref3, _results;
+        var box, line, name, _i, _j, _len, _len2, _ref2, _ref3, _ref4, _ref5, _results;
         transformation_box.highlight();
         transformation_box.number_label.toFront();
         transformation_box.number_label.show();
@@ -347,18 +366,22 @@
           line = _ref3[_j];
           line.highlight(false, true);
         }
-        for (_k = 0, _len3 = lines.length; _k < _len3; _k++) {
-          line = lines[_k];
-          lines[line].fade_unless_highlighted();
+        _ref4 = transformation_box.sankey.lines;
+        for (name in _ref4) {
+          if (!__hasProp.call(_ref4, name)) continue;
+          line = _ref4[name];
+          line.fade_unless_highlighted();
         }
+        _ref5 = transformation_box.sankey.boxes;
         _results = [];
-        for (_l = 0, _len4 = boxes.length; _l < _len4; _l++) {
-          box = boxes[_l];
-          _results.push(boxes[box].fade_unless_highlighted());
+        for (name in _ref5) {
+          if (!__hasProp.call(_ref5, name)) continue;
+          box = _ref5[name];
+          _results.push(box.fade_unless_highlighted());
         }
         return _results;
       }, function(event) {
-        var box, line, _i, _j, _k, _l, _len, _len2, _len3, _len4, _ref2, _ref3, _results;
+        var box, line, name, _i, _j, _len, _len2, _ref2, _ref3, _ref4, _ref5, _results;
         transformation_box.un_highlight();
         transformation_box.number_label.hide();
         _ref2 = transformation_box.left_lines;
@@ -371,32 +394,36 @@
           line = _ref3[_j];
           line.un_highlight(false, true);
         }
-        for (_k = 0, _len3 = lines.length; _k < _len3; _k++) {
-          line = lines[_k];
-          lines[line].un_fade();
+        _ref4 = transformation_box.sankey.lines;
+        for (name in _ref4) {
+          if (!__hasProp.call(_ref4, name)) continue;
+          line = _ref4[name];
+          line.un_fade();
         }
+        _ref5 = transformation_box.sankey.boxes;
         _results = [];
-        for (_l = 0, _len4 = boxes.length; _l < _len4; _l++) {
-          box = boxes[_l];
-          _results.push(boxes[box].un_fade());
+        for (name in _ref5) {
+          if (!__hasProp.call(_ref5, name)) continue;
+          box = _ref5[name];
+          _results.push(box.un_fade());
         }
         return _results;
       });
     };
     TransformationBox.prototype.highlight = function() {
-      if (this.box === void 0) {
+      if (this.box == null) {
         return false;
       }
       return this.highlighed = true;
     };
     TransformationBox.prototype.un_highlight = function() {
-      if (this.box === void 0) {
+      if (this.box == null) {
         return false;
       }
       return this.highlighed = false;
     };
     TransformationBox.prototype.fade_unless_highlighted = function() {
-      if (this.box === void 0) {
+      if (this.box == null) {
         return false;
       }
       if (this.highlighed === true) {
@@ -410,7 +437,7 @@
       });
     };
     TransformationBox.prototype.un_fade = function() {
-      if (this.box === void 0) {
+      if (this.box == null) {
         return false;
       }
       if (this.highlighed === true) {
