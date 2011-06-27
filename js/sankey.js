@@ -121,11 +121,11 @@
       this.right_box.left_lines.push(this);
     }
     EnergyLine.prototype.draw = function(r) {
-      var curve, flow_edge_width, flow_path, inner_width;
+      var curve, flow_edge_width, flow_path, inner_colour, inner_width;
       curve = (this.dx - this.ox) * this.sankey.flow_curve;
       flow_edge_width = this.sankey.flow_edge_width;
-      this.inner_colour = Raphael.rgb2hsb(this.colour);
-      this.inner_colour.b = this.inner_colour.b + 0.5;
+      inner_colour = Raphael.rgb2hsb(this.colour);
+      inner_colour.b = inner_colour.b + 0.5;
       this.left_label = r.text(this.ox + 1, this.oy - (this.size / 2) - 5, Math.round(this.energy)).attr({
         'text-anchor': 'start'
       });
@@ -146,7 +146,7 @@
       }
       this.inner_line = r.path(flow_path).attr({
         'stroke-width': inner_width,
-        'stroke': this.inner_colour
+        'stroke': inner_colour
       });
       return r.set().push(this.inner_line, this.outer_line).hover(this.hover_start, this.hover_stop);
     };

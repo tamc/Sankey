@@ -100,8 +100,8 @@ class EnergyLine
   draw: (r) ->
     curve = ((@dx-@ox) * @sankey.flow_curve)
     flow_edge_width = @sankey.flow_edge_width
-    @inner_colour = Raphael.rgb2hsb(@colour)
-    @inner_colour.b = @inner_colour.b + 0.5
+    inner_colour = Raphael.rgb2hsb(@colour)
+    inner_colour.b = inner_colour.b + 0.5
     @left_label = r.text((@ox+1),(@oy-(@size/2)-5),Math.round(@energy)).attr({'text-anchor':'start'})
     @right_label = r.text((@dx-1),(@dy-(@size/2)-5),Math.round(@energy)).attr({'text-anchor':'end'})
     @left_label.hide()
@@ -112,7 +112,7 @@ class EnergyLine
       inner_width = @size - flow_edge_width 
     else
      inner_width = @size
-    @inner_line = r.path(flow_path).attr({'stroke-width':inner_width, 'stroke':@inner_colour})
+    @inner_line = r.path(flow_path).attr({'stroke-width':inner_width, 'stroke':inner_colour})
     r.set().push(@inner_line,@outer_line).hover(@hover_start,@hover_stop)
     
   hover_start: (event) =>
