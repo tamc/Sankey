@@ -7,6 +7,10 @@ class Sankey
     @display_width = $('#sankey').width() # pixels
     # The height of the sankey diagram, defaults to the height of the element
     @display_height = $('#sankey').height() # pixels
+    
+    # And here is the Raphael drawing element filling that space
+    @r = Raphael(@display_in_element,@display_width,@display_height)
+    
     # Margin to left most box
     @left_margin = 100
     # Margin to right most box
@@ -87,22 +91,28 @@ class Sankey
     @line_array.sort( (a,b) -> 
        b.size - a.size
     )
-      
-  # Acually do the drawing
+  
   draw: () ->
     @position_boxes_and_lines()
-    
-    r = Raphael(@display_in_element,@display_width,@display_height)
-  
+      
     #  Draw the lines
     for line in @line_array
       if line.size > @threshold_for_drawing
-        line.draw(r)
+        line.draw(@r)
 
     #  Draw the boxes over the top
     for box in @box_array
       if box.size() > @threshold_for_drawing
-        box.draw(r)
+        box.draw(@r)
+  
+  redraw: () ->
+    @position_boxes_and_lines()
+
+    for line in @line_array
+      line.redraw(@r)
+      
+    for box in @box_array
+      box.redraw(@r)
   
   # Used for the mouseovers
   fade_unless_highlighted: () ->
@@ -159,6 +169,18 @@ class EnergyLine
   hover_stop: (event) =>
     @un_highlight(true,true)
     @sankey.un_fade()
+
+  redraw: (r) ->
+    @draw(r) unless @outer_line? 
+    curve = ((@dx-@ox) * @sankey.flow_curve)
+    flow_edge_width = @sankey.flow_edge_width
+    flow_path = "M "+@ox+","+@oy+" Q "+(@ox+curve)+","+@oy+" "+((@ox+@dx)/2)+","+((@oy+@dy)/2)+" Q "+(@dx-curve)+","+@dy+" "+@dx+","+@dy
+    @outer_line.attr({path:flow_path,'stroke-width':@size})
+    if @size > flow_edge_width
+      inner_width = @size - flow_edge_width 
+    else
+     inner_width = @size
+    @inner_line.attr({path:flow_path, 'stroke-width':inner_width})
 
   fade_unless_highlighted: () ->
     return false unless @outer_line?
@@ -273,6 +295,12 @@ class TransformationBox
     @number_label.hide()
 
     r.set().push(@number_label,@label,@box).hover(@hover_start,@hover_end)
+  
+  redraw: (r) ->
+    @draw(r) unless @box?
+    return unless @box?
+    @box.attr({y: @y, height:@size()}) 
+    @label.attr({y: (@y+(@size()/2))})
     
   hover_start: () =>
     @highlight()

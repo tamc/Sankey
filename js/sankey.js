@@ -6,6 +6,7 @@
       this.display_in_element = 'sankey';
       this.display_width = $('#sankey').width();
       this.display_height = $('#sankey').height();
+      this.r = Raphael(this.display_in_element, this.display_width, this.display_height);
       this.left_margin = 100;
       this.right_margin = 100;
       this.TWh = (this.display_width / 1000) * 0.1;
@@ -106,21 +107,36 @@
       });
     };
     Sankey.prototype.draw = function() {
-      var box, line, r, _i, _j, _len, _len2, _ref, _ref2, _results;
+      var box, line, _i, _j, _len, _len2, _ref, _ref2, _results;
       this.position_boxes_and_lines();
-      r = Raphael(this.display_in_element, this.display_width, this.display_height);
       _ref = this.line_array;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         line = _ref[_i];
         if (line.size > this.threshold_for_drawing) {
-          line.draw(r);
+          line.draw(this.r);
         }
       }
       _ref2 = this.box_array;
       _results = [];
       for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
         box = _ref2[_j];
-        _results.push(box.size() > this.threshold_for_drawing ? box.draw(r) : void 0);
+        _results.push(box.size() > this.threshold_for_drawing ? box.draw(this.r) : void 0);
+      }
+      return _results;
+    };
+    Sankey.prototype.redraw = function() {
+      var box, line, _i, _j, _len, _len2, _ref, _ref2, _results;
+      this.position_boxes_and_lines();
+      _ref = this.line_array;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        line = _ref[_i];
+        line.redraw(this.r);
+      }
+      _ref2 = this.box_array;
+      _results = [];
+      for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
+        box = _ref2[_j];
+        _results.push(box.redraw(this.r));
       }
       return _results;
     };
@@ -214,6 +230,28 @@
     EnergyLine.prototype.hover_stop = function(event) {
       this.un_highlight(true, true);
       return this.sankey.un_fade();
+    };
+    EnergyLine.prototype.redraw = function(r) {
+      var curve, flow_edge_width, flow_path, inner_width;
+      if (this.outer_line == null) {
+        this.draw(r);
+      }
+      curve = (this.dx - this.ox) * this.sankey.flow_curve;
+      flow_edge_width = this.sankey.flow_edge_width;
+      flow_path = "M " + this.ox + "," + this.oy + " Q " + (this.ox + curve) + "," + this.oy + " " + ((this.ox + this.dx) / 2) + "," + ((this.oy + this.dy) / 2) + " Q " + (this.dx - curve) + "," + this.dy + " " + this.dx + "," + this.dy;
+      this.outer_line.attr({
+        path: flow_path,
+        'stroke-width': this.size
+      });
+      if (this.size > flow_edge_width) {
+        inner_width = this.size - flow_edge_width;
+      } else {
+        inner_width = this.size;
+      }
+      return this.inner_line.attr({
+        path: flow_path,
+        'stroke-width': inner_width
+      });
     };
     EnergyLine.prototype.fade_unless_highlighted = function() {
       if (this.outer_line == null) {
@@ -389,6 +427,21 @@
       this.number_label = r.text(this.x + (box_width / 2), this.y - 5, Math.round(this.size() / this.sankey.TWh));
       this.number_label.hide();
       return r.set().push(this.number_label, this.label, this.box).hover(this.hover_start, this.hover_end);
+    };
+    TransformationBox.prototype.redraw = function(r) {
+      if (this.box == null) {
+        this.draw(r);
+      }
+      if (this.box == null) {
+        return;
+      }
+      this.box.attr({
+        y: this.y,
+        height: this.size()
+      });
+      return this.label.attr({
+        y: this.y + (this.size() / 2)
+      });
     };
     TransformationBox.prototype.hover_start = function() {
       var line, _i, _j, _len, _len2, _ref, _ref2;
