@@ -27,18 +27,24 @@ class Sankey
     @flow_curve = 0.25 
     # Stores all the transformation boxes
     @boxes = {}
+    @box_array = []
     # Stores all the transformation lines
     @lines = {}
+    @line_array = []
   
   find_or_create_trasformation_box: (name) ->
     unless @boxes[name]?
-      @boxes[name] = new TransformationBox(sankey,name)
+      new_box = new TransformationBox(sankey,name)
+      @boxes[name] = new_box
+      @box_array.push(new_box)
     return @boxes[name]
   
   setData: (data) ->
     for datum in data
       if datum[0] != 0
-        @lines[datum[0]+"-"+datum[2]] = new EnergyLine(sankey,datum[0],datum[1],datum[2])      
+        new_line = new EnergyLine(sankey,datum[0],datum[1],datum[2])
+        @lines[datum[0]+"-"+datum[2]] = new_line
+        @line_array.push(new_line)
 
   stack: (x,box_names,y = 10) ->
     for name in box_names
@@ -52,8 +58,8 @@ class Sankey
     return y
     
   setColors: (colors) ->
-    for own name, box of @boxes
-      box.line_colour = colors[name]
+    for box in @box_array
+      box.line_colour = colors[box.name] || box.line_colour
       box.position_and_colour_lines()
   
   recolour: (lines,new_colour) ->
@@ -63,26 +69,37 @@ class Sankey
   # Acually do the drawing
   draw: () ->
     r = Raphael(@display_in_element,@display_width,@display_height)
-
-    # Want to draw the thickest lines first, so sort
-    sorted_lines = []
-    for own name, line of @lines
-      sorted_lines.push(line)
-      undefined
       
-    sorted_lines.sort( (a,b) -> 
+    @line_array.sort( (a,b) -> 
       b.size - a.size
     )
 
     #  Draw the lines
-    for line in sorted_lines
+    for line in @line_array
       if line.size > @threshold_for_drawing
         line.draw(r)
 
     #  Draw the boxes over the top
-    for own name, box of @boxes
+    for box in @box_array
       if box.size() > @threshold_for_drawing
         box.draw(r)
+  
+  # Used for the mouseovers
+  fade_unless_highlighted: () ->
+    for line in @line_array
+      line.fade_unless_highlighted()
+      undefined
+    for box in @box_array
+      box.fade_unless_highlighted()
+      undefined
+  
+  un_fade: () ->
+    for line in @line_array
+      line.un_fade()
+      undefined
+    for box in @box_array
+      box.un_fade()
+      undefined
             
 class EnergyLine 
   constructor: (@sankey,left_box_name,@energy,right_box_name) ->
@@ -117,17 +134,11 @@ class EnergyLine
     
   hover_start: (event) =>
     @highlight(true,true)
-    for own name, line of @sankey.lines
-      line.fade_unless_highlighted() 
-    for own name, box of @sankey.boxes
-      box.fade_unless_highlighted()
+    @sankey.fade_unless_highlighted()
 
   hover_stop: (event) =>
     @un_highlight(true,true)
-    for own name, line of @sankey.lines
-      line.un_fade()
-    for own name, box of @sankey.boxes
-      box.un_fade()
+    @sankey.un_fade()
 
   fade_unless_highlighted: () ->
     return false unless @outer_line?
@@ -172,9 +183,7 @@ class EnergyLine
 
 class TransformationBox
   
-  constructor: (sankey,name) ->
-    @sankey = sankey
-    @name = name
+  constructor: (@sankey,@name) ->
     @label_text = name
     @line_colour = "orange"
     @left_lines = []
@@ -244,41 +253,33 @@ class TransformationBox
     @number_label.hide()
     transformation_box = this
 
-    r.set().push(@number_label,@label,@box).hover(
-      (event) ->
-        transformation_box.highlight()
-        transformation_box.number_label.toFront()
-        transformation_box.number_label.show()
-        
-        for line in transformation_box.left_lines
-          line.highlight(true,false)
+    r.set().push(@number_label,@label,@box).hover(@hover_start,@hover_end)
+    
+  hover_start: () =>
+    @highlight()
+    @number_label.toFront()
+    @number_label.show()
+    
+    for line in @left_lines
+      line.highlight(true,false)
 
-        for line in transformation_box.right_lines
-          line.highlight(false,true)
+    for line in @right_lines
+      line.highlight(false,true)
 
-        for own name, line of transformation_box.sankey.lines
-          line.fade_unless_highlighted()
-          
-        for own name, box of transformation_box.sankey.boxes
-          box.fade_unless_highlighted()
-      , 
-      (event) ->
-        transformation_box.un_highlight()
-        transformation_box.number_label.hide()
-        
-        for line in transformation_box.left_lines
-          line.un_highlight(true,false)
+    @sankey.fade_unless_highlighted()
+  
+  hover_end: () =>
+    @un_highlight()
+    @number_label.hide()
 
-        for line in transformation_box.right_lines
-          line.un_highlight(false,true)
+    for line in @left_lines
+      line.un_highlight(true,false)
 
-        for own name, line of transformation_box.sankey.lines
-          line.un_fade()
-        
-        for own name, box of transformation_box.sankey.boxes
-          box.un_fade()
-      )
+    for line in @right_lines
+      line.un_highlight(false,true)
 
+    @sankey.un_fade()
+  
   highlight: () ->
     return false unless @box?
     @highlighed = true    
