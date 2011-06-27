@@ -52,7 +52,8 @@ class Sankey
     @stacks.push { x: x, box_names: box_names, y_box: y_box }
     
   setColors: (colors) ->
-    for box in @box_array
+    for own box_name, color of colors
+      box = @find_or_create_trasformation_box(box_name)
       box.line_colour = colors[box.name] || box.line_colour
   
   recolour: (lines,new_colour) ->
@@ -80,6 +81,8 @@ class Sankey
             
     for box in @box_array
       box.position_and_colour_lines()
+      
+    @nudge_colours?.call(this)
       
   # Acually do the drawing
   draw: () ->

@@ -1,6 +1,6 @@
 (function() {
   var EnergyLine, Sankey, TransformationBox;
-  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+  var __hasProp = Object.prototype.hasOwnProperty, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   Sankey = (function() {
     function Sankey() {
       this.display_in_element = 'sankey';
@@ -47,11 +47,12 @@
       });
     };
     Sankey.prototype.setColors = function(colors) {
-      var box, _i, _len, _ref, _results;
-      _ref = this.box_array;
+      var box, box_name, color, _results;
       _results = [];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        box = _ref[_i];
+      for (box_name in colors) {
+        if (!__hasProp.call(colors, box_name)) continue;
+        color = colors[box_name];
+        box = this.find_or_create_trasformation_box(box_name);
         _results.push(box.line_colour = colors[box.name] || box.line_colour);
       }
       return _results;
@@ -66,7 +67,7 @@
       return _results;
     };
     Sankey.prototype.position_boxes_and_lines = function() {
-      var box, name, stack, x, y, _i, _j, _k, _len, _len2, _len3, _ref, _ref2, _ref3, _ref4, _ref5, _results;
+      var box, name, stack, x, y, _i, _j, _k, _len, _len2, _len3, _ref, _ref2, _ref3, _ref4, _ref5, _ref6;
       _ref = this.stacks;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         stack = _ref[_i];
@@ -93,12 +94,11 @@
         _ref4.call(this);
       }
       _ref5 = this.box_array;
-      _results = [];
       for (_k = 0, _len3 = _ref5.length; _k < _len3; _k++) {
         box = _ref5[_k];
-        _results.push(box.position_and_colour_lines());
+        box.position_and_colour_lines();
       }
-      return _results;
+      return (_ref6 = this.nudge_colours) != null ? _ref6.call(this) : void 0;
     };
     Sankey.prototype.draw = function() {
       var box, line, r, _i, _j, _len, _len2, _ref, _ref2, _results;
