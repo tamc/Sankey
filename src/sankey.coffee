@@ -31,6 +31,8 @@ class Sankey
     # Stores all the transformation lines
     @lines = {}
     @line_array = []
+    # Stores the organisation of the diagram
+    @stacks = []
   
   find_or_create_trasformation_box: (name) ->
     unless @boxes[name]?
@@ -46,28 +48,43 @@ class Sankey
         @lines[datum[0]+"-"+datum[2]] = new_line
         @line_array.push(new_line)
 
-  stack: (x,box_names,y = 10) ->
-    for name in box_names
-      box = @boxes[name]
-      unless box?
-        alert "Can't find transformation called #{name}"
-      else
-        box.y = y
-        box.x = @left_margin + (x * @x_step)
-        y = box.b() + @y_space
-    return y
+  stack: (x,box_names,y_box) ->
+    @stacks.push { x: x, box_names: box_names, y_box: y_box }
     
   setColors: (colors) ->
     for box in @box_array
       box.line_colour = colors[box.name] || box.line_colour
-      box.position_and_colour_lines()
   
   recolour: (lines,new_colour) ->
     for line in lines
       line.colour = new_colour    
-
+  
+  # Work out where everything should go
+  position_boxes_and_lines: () ->
+    for stack in @stacks
+      x = stack.x
+      if stack.y_box?
+        y = @boxes[stack.y_box]?.y || 10
+      else
+        y = 10
+      for name in stack.box_names
+        box = @boxes[name]
+        unless box?
+          alert "Can't find transformation called #{name}"
+        else
+          box.y = y
+          box.x = @left_margin + (x * @x_step)
+          y = box.b() + @y_space
+    
+    @nudge_boxes?.call(this)
+            
+    for box in @box_array
+      box.position_and_colour_lines()
+      
   # Acually do the drawing
   draw: () ->
+    @position_boxes_and_lines()
+    
     r = Raphael(@display_in_element,@display_width,@display_height)
       
     @line_array.sort( (a,b) -> 

@@ -19,6 +19,7 @@
       this.box_array = [];
       this.lines = {};
       this.line_array = [];
+      this.stacks = [];
     }
     Sankey.prototype.find_or_create_trasformation_box = function(name) {
       var new_box;
@@ -38,23 +39,12 @@
       }
       return _results;
     };
-    Sankey.prototype.stack = function(x, box_names, y) {
-      var box, name, _i, _len;
-      if (y == null) {
-        y = 10;
-      }
-      for (_i = 0, _len = box_names.length; _i < _len; _i++) {
-        name = box_names[_i];
-        box = this.boxes[name];
-        if (box == null) {
-          alert("Can't find transformation called " + name);
-        } else {
-          box.y = y;
-          box.x = this.left_margin + (x * this.x_step);
-          y = box.b() + this.y_space;
-        }
-      }
-      return y;
+    Sankey.prototype.stack = function(x, box_names, y_box) {
+      return this.stacks.push({
+        x: x,
+        box_names: box_names,
+        y_box: y_box
+      });
     };
     Sankey.prototype.setColors = function(colors) {
       var box, _i, _len, _ref, _results;
@@ -62,8 +52,7 @@
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         box = _ref[_i];
-        box.line_colour = colors[box.name] || box.line_colour;
-        _results.push(box.position_and_colour_lines());
+        _results.push(box.line_colour = colors[box.name] || box.line_colour);
       }
       return _results;
     };
@@ -76,8 +65,44 @@
       }
       return _results;
     };
+    Sankey.prototype.position_boxes_and_lines = function() {
+      var box, name, stack, x, y, _i, _j, _k, _len, _len2, _len3, _ref, _ref2, _ref3, _ref4, _ref5, _results;
+      _ref = this.stacks;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        stack = _ref[_i];
+        x = stack.x;
+        if (stack.y_box != null) {
+          y = ((_ref2 = this.boxes[stack.y_box]) != null ? _ref2.y : void 0) || 10;
+        } else {
+          y = 10;
+        }
+        _ref3 = stack.box_names;
+        for (_j = 0, _len2 = _ref3.length; _j < _len2; _j++) {
+          name = _ref3[_j];
+          box = this.boxes[name];
+          if (box == null) {
+            alert("Can't find transformation called " + name);
+          } else {
+            box.y = y;
+            box.x = this.left_margin + (x * this.x_step);
+            y = box.b() + this.y_space;
+          }
+        }
+      }
+      if ((_ref4 = this.nudge_boxes) != null) {
+        _ref4.call(this);
+      }
+      _ref5 = this.box_array;
+      _results = [];
+      for (_k = 0, _len3 = _ref5.length; _k < _len3; _k++) {
+        box = _ref5[_k];
+        _results.push(box.position_and_colour_lines());
+      }
+      return _results;
+    };
     Sankey.prototype.draw = function() {
       var box, line, r, _i, _j, _len, _len2, _ref, _ref2, _results;
+      this.position_boxes_and_lines();
       r = Raphael(this.display_in_element, this.display_width, this.display_height);
       this.line_array.sort(function(a, b) {
         return b.size - a.size;
