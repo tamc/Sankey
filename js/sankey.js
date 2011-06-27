@@ -105,9 +105,10 @@
   })();
   EnergyLine = (function() {
     function EnergyLine(sankey, left_box_name, energy, right_box_name) {
-      this.hover_stop = __bind(this.hover_stop, this);
-      this.hover_start = __bind(this.hover_start, this);      this.sankey = sankey;
+      this.sankey = sankey;
       this.energy = energy;
+      this.hover_stop = __bind(this.hover_stop, this);
+      this.hover_start = __bind(this.hover_start, this);
       this.size = energy * this.sankey.TWh;
       this.colour = 'orange';
       this.ox = 0;

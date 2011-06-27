@@ -85,9 +85,7 @@ class Sankey
         box.draw(r)
             
 class EnergyLine 
-  constructor: (sankey,left_box_name,energy,right_box_name) ->
-    @sankey = sankey
-    @energy = energy
+  constructor: (@sankey,left_box_name,@energy,right_box_name) ->
     @size = energy*@sankey.TWh
     @colour = 'orange'
     @ox = 0
