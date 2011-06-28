@@ -44,18 +44,23 @@ class Sankey
   lineName: (start,end) ->
     "#{start}-#{end}"
   
+  createLine: (datum) ->
+    return if datum[0] == 0
+    new_line = new FlowLine(sankey,datum[0],datum[1],datum[2])
+    @lines[@lineName(datum[0],datum[2])] = new_line
+    @line_array.push(new_line)
+  
   setData: (data) ->
     for datum in data
-      if datum[0] != 0
-        new_line = new FlowLine(sankey,datum[0],datum[1],datum[2])
-        @lines[@lineName(datum[0],datum[2])] = new_line
-        @line_array.push(new_line)
+      @createLine(datum)
   
   updateData: (data) ->
     for datum in data
       line = @lines[@lineName(datum[0],datum[2])]
-      line.setFlow(datum[1]) if line        
-    
+      if line        
+        line.setFlow(datum[1])
+      else
+        @createLine(datum)
   
   # Called to turn whatever unit the data is in into pixels for the flow lines
   convert_flow_values_callback: (flow) ->
@@ -108,7 +113,7 @@ class Sankey
       for name in stack.box_names
         box = @boxes[name]
         unless box?
-          alert "Can't find transformation called #{name}"
+          # alert "Can't find transformation called #{name}"
         else
           box.y = y
           box.x = @left_margin + (x * x_step)

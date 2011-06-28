@@ -14,7 +14,7 @@
       
         sankey.stack(0,["Top","Bottom"]);
         sankey.stack(1,["Merge"]);
-        sankey.stack(2,["Good","Bad"]);
+        sankey.stack(2,["Good","Bad","Indifferent"]);
       
         sankey.setData([["Top",100,"Merge"],["Bottom",50,"Merge"],["Merge",70,"Good"],["Merge",80,"Bad"]]);
         sankey.draw();
@@ -23,7 +23,8 @@
           sankey.updateData([
             ["Top",10,"Merge"],
             ["Merge",10,"Good"],
-            ["Merge",50,"Bad"]
+            ["Merge",30,"Bad"],
+            ["Merge",20,"Indifferent"]
           ]);
           sankey.redraw();        
         },1000)

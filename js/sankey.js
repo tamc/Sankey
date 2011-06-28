@@ -32,12 +32,21 @@
     Sankey.prototype.lineName = function(start, end) {
       return "" + start + "-" + end;
     };
+    Sankey.prototype.createLine = function(datum) {
+      var new_line;
+      if (datum[0] === 0) {
+        return;
+      }
+      new_line = new FlowLine(sankey, datum[0], datum[1], datum[2]);
+      this.lines[this.lineName(datum[0], datum[2])] = new_line;
+      return this.line_array.push(new_line);
+    };
     Sankey.prototype.setData = function(data) {
-      var datum, new_line, _i, _len, _results;
+      var datum, _i, _len, _results;
       _results = [];
       for (_i = 0, _len = data.length; _i < _len; _i++) {
         datum = data[_i];
-        _results.push(datum[0] !== 0 ? (new_line = new FlowLine(sankey, datum[0], datum[1], datum[2]), this.lines[this.lineName(datum[0], datum[2])] = new_line, this.line_array.push(new_line)) : void 0);
+        _results.push(this.createLine(datum));
       }
       return _results;
     };
@@ -47,7 +56,7 @@
       for (_i = 0, _len = data.length; _i < _len; _i++) {
         datum = data[_i];
         line = this.lines[this.lineName(datum[0], datum[2])];
-        _results.push(line ? line.setFlow(datum[1]) : void 0);
+        _results.push(line ? line.setFlow(datum[1]) : this.createLine(datum));
       }
       return _results;
     };
@@ -121,9 +130,7 @@
         for (_j = 0, _len2 = _ref3.length; _j < _len2; _j++) {
           name = _ref3[_j];
           box = this.boxes[name];
-          if (box == null) {
-            alert("Can't find transformation called " + name);
-          } else {
+          if (box == null) {} else {
             box.y = y;
             box.x = this.left_margin + (x * x_step);
             y = box.b() + this.y_space;
