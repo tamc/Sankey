@@ -20,9 +20,11 @@
         sankey.draw();
       
         setTimeout( function() {
-          sankey.lines["Top-Merge"].setFlow(10);
-          sankey.lines["Merge-Bad"].setFlow(10);
-          sankey.lines["Merge-Good"].setFlow(50);
+          sankey.updateData([
+            ["Top",10,"Merge"],
+            ["Merge",10,"Good"],
+            ["Merge",50,"Bad"]
+          ]);
           sankey.redraw();        
         },1000)
     });

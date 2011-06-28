@@ -29,12 +29,25 @@
       }
       return this.boxes[name];
     };
+    Sankey.prototype.lineName = function(start, end) {
+      return "" + start + "-" + end;
+    };
     Sankey.prototype.setData = function(data) {
       var datum, new_line, _i, _len, _results;
       _results = [];
       for (_i = 0, _len = data.length; _i < _len; _i++) {
         datum = data[_i];
-        _results.push(datum[0] !== 0 ? (new_line = new FlowLine(sankey, datum[0], datum[1], datum[2]), this.lines[datum[0] + "-" + datum[2]] = new_line, this.line_array.push(new_line)) : void 0);
+        _results.push(datum[0] !== 0 ? (new_line = new FlowLine(sankey, datum[0], datum[1], datum[2]), this.lines[this.lineName(datum[0], datum[2])] = new_line, this.line_array.push(new_line)) : void 0);
+      }
+      return _results;
+    };
+    Sankey.prototype.updateData = function(data) {
+      var datum, line, _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = data.length; _i < _len; _i++) {
+        datum = data[_i];
+        line = this.lines[this.lineName(datum[0], datum[2])];
+        _results.push(line ? line.setFlow(datum[1]) : void 0);
       }
       return _results;
     };

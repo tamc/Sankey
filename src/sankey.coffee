@@ -41,12 +41,21 @@ class Sankey
       @box_array.push(new_box)
     return @boxes[name]
   
+  lineName: (start,end) ->
+    "#{start}-#{end}"
+  
   setData: (data) ->
     for datum in data
       if datum[0] != 0
         new_line = new FlowLine(sankey,datum[0],datum[1],datum[2])
-        @lines[datum[0]+"-"+datum[2]] = new_line
+        @lines[@lineName(datum[0],datum[2])] = new_line
         @line_array.push(new_line)
+  
+  updateData: (data) ->
+    for datum in data
+      line = @lines[@lineName(datum[0],datum[2])]
+      line.setFlow(datum[1]) if line        
+    
   
   # Called to turn whatever unit the data is in into pixels for the flow lines
   convert_flow_values_callback: (flow) ->
