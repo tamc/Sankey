@@ -153,6 +153,8 @@
       };
       
       sankey.y_space = 20;
+      sankey.right_margin = 250;
+      sankey.left_margin = 150;
       
       sankey.convert_flow_values_callback = function(flow) {
         return flow * 0.05; // Pixels per TWh
@@ -171,7 +173,7 @@
     });
       
     </script>
-    <h1 style='width:1000px; text-align: center; margin-bottom: 0'>An example Sankey Diagram</h1>
+    <h1 style='width:1000px; text-align: center; margin-bottom: 0'>A more complex Sankey Diagram</h1>
     <div style='width:1000px; text-align: center; margin-top: 0'>Move your mouse over the diagram to show values</div>
     <div id='sankey' style="width:1000px;height:1000px">
       &nbsp;

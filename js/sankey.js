@@ -9,7 +9,6 @@
       this.r = Raphael(this.display_in_element, this.display_width, this.display_height);
       this.left_margin = 100;
       this.right_margin = 100;
-      this.x_step = (this.display_width - this.left_margin - this.right_margin) / 8;
       this.y_space = 10;
       this.threshold_for_drawing = 0;
       this.box_width = 50;
@@ -81,8 +80,21 @@
       }
       return _results;
     };
+    Sankey.prototype.calculateXStep = function() {
+      var maximum_x, stack, _i, _len, _ref;
+      maximum_x = 0;
+      _ref = this.stacks;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        stack = _ref[_i];
+        if (stack.x > maximum_x) {
+          maximum_x = stack.x;
+        }
+      }
+      return (this.display_width - this.left_margin - this.right_margin) / maximum_x;
+    };
     Sankey.prototype.position_boxes_and_lines = function() {
-      var box, name, stack, x, y, _i, _j, _k, _len, _len2, _len3, _ref, _ref2, _ref3, _ref4;
+      var box, name, stack, x, x_step, y, _i, _j, _k, _len, _len2, _len3, _ref, _ref2, _ref3, _ref4;
+      x_step = this.calculateXStep();
       _ref = this.stacks;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         stack = _ref[_i];
@@ -100,7 +112,7 @@
             alert("Can't find transformation called " + name);
           } else {
             box.y = y;
-            box.x = this.left_margin + (x * this.x_step);
+            box.x = this.left_margin + (x * x_step);
             y = box.b() + this.y_space;
           }
         }

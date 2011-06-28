@@ -15,8 +15,6 @@ class Sankey
     @left_margin = 100
     # Margin to right most box
     @right_margin = 100
-    # Horizontal spacing between stacks of transformation boxes
-    @x_step = (@display_width - @left_margin - @right_margin) / 8
     # Vertical spacing between transformation boxes in the same column
     @y_space = 10
     # Don't bother drawing a line or a box if its size is less than this in pixels
@@ -82,8 +80,16 @@ class Sankey
     for line in lines
       line.colour = new_colour    
   
+  calculateXStep: () ->
+    maximum_x = 0
+    for stack in @stacks
+      maximum_x = stack.x if stack.x > maximum_x
+    (@display_width - @left_margin - @right_margin) / maximum_x
+  
   # Work out where everything should go
   position_boxes_and_lines: () ->
+    # Horizontal spacing between stacks of transformation boxes
+    x_step = @calculateXStep()
     for stack in @stacks
       x = stack.x
       if stack.y_box?
@@ -96,7 +102,7 @@ class Sankey
           alert "Can't find transformation called #{name}"
         else
           box.y = y
-          box.x = @left_margin + (x * @x_step)
+          box.x = @left_margin + (x * x_step)
           y = box.b() + @y_space
     
     @nudge_boxes_callback()
