@@ -9,9 +9,8 @@
       this.r = Raphael(this.display_in_element, this.display_width, this.display_height);
       this.left_margin = 100;
       this.right_margin = 100;
-      this.TWh = (this.display_width / 1000) * 0.1;
       this.x_step = (this.display_width - this.left_margin - this.right_margin) / 8;
-      this.y_space = 100 * this.TWh;
+      this.y_space = 10;
       this.threshold_for_drawing = 0;
       this.box_width = 50;
       this.flow_edge_width = 2;
@@ -39,6 +38,21 @@
         _results.push(datum[0] !== 0 ? (new_line = new FlowLine(sankey, datum[0], datum[1], datum[2]), this.lines[datum[0] + "-" + datum[2]] = new_line, this.line_array.push(new_line)) : void 0);
       }
       return _results;
+    };
+    Sankey.prototype.convert_flow_values_callback = function(flow) {
+      return flow;
+    };
+    Sankey.prototype.convert_flow_labels_callback = function(flow) {
+      return flow;
+    };
+    Sankey.prototype.convert_box_value_labels_callback = function(flow) {
+      return this.convert_flow_labels_callback(flow);
+    };
+    Sankey.prototype.nudge_boxes_callback = function() {
+      return;
+    };
+    Sankey.prototype.nudge_colours_callback = function() {
+      return;
     };
     Sankey.prototype.stack = function(x, box_names, y_box) {
       return this.stacks.push({
@@ -68,7 +82,7 @@
       return _results;
     };
     Sankey.prototype.position_boxes_and_lines = function() {
-      var box, name, stack, x, y, _i, _j, _k, _len, _len2, _len3, _ref, _ref2, _ref3, _ref4, _ref5, _ref6;
+      var box, name, stack, x, y, _i, _j, _k, _len, _len2, _len3, _ref, _ref2, _ref3, _ref4;
       _ref = this.stacks;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         stack = _ref[_i];
@@ -91,17 +105,13 @@
           }
         }
       }
-      if ((_ref4 = this.nudge_boxes) != null) {
-        _ref4.call(this);
-      }
-      _ref5 = this.box_array;
-      for (_k = 0, _len3 = _ref5.length; _k < _len3; _k++) {
-        box = _ref5[_k];
+      this.nudge_boxes_callback();
+      _ref4 = this.box_array;
+      for (_k = 0, _len3 = _ref4.length; _k < _len3; _k++) {
+        box = _ref4[_k];
         box.position_and_colour_lines();
       }
-      if ((_ref6 = this.nudge_colours) != null) {
-        _ref6.call(this);
-      }
+      this.nudge_colours_callback();
       return this.line_array.sort(function(a, b) {
         return b.size - a.size;
       });
@@ -177,12 +187,11 @@
     return Sankey;
   })();
   FlowLine = (function() {
-    function FlowLine(sankey, left_box_name, energy, right_box_name) {
+    function FlowLine(sankey, left_box_name, flow, right_box_name) {
       this.sankey = sankey;
-      this.energy = energy;
       this.hover_stop = __bind(this.hover_stop, this);
       this.hover_start = __bind(this.hover_start, this);
-      this.size = energy * this.sankey.TWh;
+      this.setFlow(flow);
       this.colour = void 0;
       this.ox = 0;
       this.oy = 0;
@@ -193,35 +202,48 @@
       this.left_box.right_lines.push(this);
       this.right_box.left_lines.push(this);
     }
-    FlowLine.prototype.draw = function(r) {
-      var curve, flow_edge_width, flow_path, inner_colour, inner_width;
+    FlowLine.prototype.setFlow = function(flow) {
+      this.flow = flow;
+      return this.size = this.sankey.convert_flow_values_callback(this.flow);
+    };
+    FlowLine.prototype.labelText = function() {
+      return this.sankey.convert_flow_labels_callback(this.flow);
+    };
+    FlowLine.prototype.path = function() {
+      var curve;
       curve = (this.dx - this.ox) * this.sankey.flow_curve;
-      flow_edge_width = this.sankey.flow_edge_width;
-      inner_colour = Raphael.rgb2hsb(this.colour);
-      inner_colour.b = inner_colour.b + 0.5;
-      this.left_label = r.text(this.ox + 1, this.oy - (this.size / 2) - 5, Math.round(this.energy)).attr({
+      return "M " + this.ox + "," + this.oy + " Q " + (this.ox + curve) + "," + this.oy + " " + ((this.ox + this.dx) / 2) + "," + ((this.oy + this.dy) / 2) + " Q " + (this.dx - curve) + "," + this.dy + " " + this.dx + "," + this.dy;
+    };
+    FlowLine.prototype.innerWidth = function() {
+      if (this.size > this.sankey.flow_edge_width) {
+        return this.size - this.sankey.flow_edge_width;
+      }
+      return this.size;
+    };
+    FlowLine.prototype.innerColor = function() {
+      var c;
+      c = Raphael.rgb2hsb(this.colour);
+      c.b = c.b + 0.5;
+      return c;
+    };
+    FlowLine.prototype.draw = function(r) {
+      this.outer_line = r.path(this.path()).attr({
+        'stroke-width': this.size,
+        'stroke': this.colour
+      });
+      this.inner_line = r.path(this.path()).attr({
+        'stroke-width': this.innerWidth(),
+        'stroke': this.innerColor()
+      });
+      r.set().push(this.inner_line, this.outer_line).hover(this.hover_start, this.hover_stop);
+      this.left_label = r.text(this.ox + 1, this.oy - (this.size / 2) - 5, this.labelText()).attr({
         'text-anchor': 'start'
       });
-      this.right_label = r.text(this.dx - 1, this.dy - (this.size / 2) - 5, Math.round(this.energy)).attr({
+      this.right_label = r.text(this.dx - 1, this.dy - (this.size / 2) - 5, this.labelText()).attr({
         'text-anchor': 'end'
       });
       this.left_label.hide();
-      this.right_label.hide();
-      flow_path = "M " + this.ox + "," + this.oy + " Q " + (this.ox + curve) + "," + this.oy + " " + ((this.ox + this.dx) / 2) + "," + ((this.oy + this.dy) / 2) + " Q " + (this.dx - curve) + "," + this.dy + " " + this.dx + "," + this.dy;
-      this.outer_line = r.path(flow_path).attr({
-        'stroke': this.colour,
-        'stroke-width': this.size
-      });
-      if (this.size > flow_edge_width) {
-        inner_width = this.size - flow_edge_width;
-      } else {
-        inner_width = this.size;
-      }
-      this.inner_line = r.path(flow_path).attr({
-        'stroke-width': inner_width,
-        'stroke': inner_colour
-      });
-      return r.set().push(this.inner_line, this.outer_line).hover(this.hover_start, this.hover_stop);
+      return this.right_label.hide();
     };
     FlowLine.prototype.hover_start = function(event) {
       this.highlight(true, true);
@@ -232,25 +254,26 @@
       return this.sankey.un_fade();
     };
     FlowLine.prototype.redraw = function(r) {
-      var curve, flow_edge_width, flow_path, inner_width;
       if (this.outer_line == null) {
         this.draw(r);
       }
-      curve = (this.dx - this.ox) * this.sankey.flow_curve;
-      flow_edge_width = this.sankey.flow_edge_width;
-      flow_path = "M " + this.ox + "," + this.oy + " Q " + (this.ox + curve) + "," + this.oy + " " + ((this.ox + this.dx) / 2) + "," + ((this.oy + this.dy) / 2) + " Q " + (this.dx - curve) + "," + this.dy + " " + this.dx + "," + this.dy;
       this.outer_line.attr({
-        path: flow_path,
+        path: this.path(),
         'stroke-width': this.size
       });
-      if (this.size > flow_edge_width) {
-        inner_width = this.size - flow_edge_width;
-      } else {
-        inner_width = this.size;
-      }
-      return this.inner_line.attr({
-        path: flow_path,
-        'stroke-width': inner_width
+      this.inner_line.attr({
+        path: this.path(),
+        'stroke-width': this.innerWidth()
+      });
+      this.left_label.attr({
+        text: this.labelText(),
+        x: this.ox + 1,
+        y: this.oy - (this.size / 2) - 5
+      });
+      return this.right_label.attr({
+        text: this.labelText(),
+        x: this.dx - 1,
+        y: this.dy - (this.size / 2) - 5
       });
     };
     FlowLine.prototype.fade_unless_highlighted = function() {
@@ -361,6 +384,22 @@
       }
       return s;
     };
+    TransformationBox.prototype.flow = function() {
+      var line, lines, s, _i, _len;
+      s = 0;
+      if (this.is_left_box()) {
+        lines = this.right_lines;
+      } else {
+        lines = this.left_lines;
+      }
+      for (_i = 0, _len = lines.length; _i < _len; _i++) {
+        line = lines[_i];
+        if (line.size > this.sankey.threshold_for_drawing) {
+          s = s + line.flow;
+        }
+      }
+      return s;
+    };
     TransformationBox.prototype.position_and_colour_lines = function() {
       var box_width, left_lines, line, ly, right_lines, ry, _i, _j, _len, _len2, _ref, _results;
       ly = this.y;
@@ -394,6 +433,49 @@
       }
       return _results;
     };
+    TransformationBox.prototype.valueLabelText = function() {
+      return this.sankey.convert_box_value_labels_callback(this.flow());
+    };
+    TransformationBox.prototype.descriptionLabelText = function() {
+      if (this.is_left_box()) {
+        return this.label_text;
+      }
+      if (this.is_right_box()) {
+        return this.label_text;
+      }
+      return this.label_text.replace(/[^a-zA-Z0-9]/, "\n");
+    };
+    TransformationBox.prototype.labelPositionX = function() {
+      if (this.is_left_box()) {
+        return this.x - 3.0;
+      }
+      if (this.is_right_box()) {
+        return this.x + this.sankey.box_width + 3.0;
+      }
+      return this.x + (this.sankey.box_width / 2);
+    };
+    TransformationBox.prototype.labelPositionY = function() {
+      return this.y + (this.size() / 2);
+    };
+    TransformationBox.prototype.labelAttributes = function() {
+      if (this.is_left_box()) {
+        return {
+          'text-anchor': 'end'
+        };
+      }
+      if (this.is_right_box()) {
+        return {
+          'text-anchor': 'start'
+        };
+      }
+      return {};
+    };
+    TransformationBox.prototype.numberLabelPositionX = function() {
+      return this.x + (this.sankey.box_width / 2);
+    };
+    TransformationBox.prototype.numberLabelPositionY = function() {
+      return this.y - 5;
+    };
     TransformationBox.prototype.draw = function(r) {
       var box_width, _ref;
       box_width = this.sankey.box_width;
@@ -401,17 +483,7 @@
         'fill': "#E8E2FF",
         "stroke": "#D4CBF2"
       });
-      if (this.is_left_box()) {
-        this.label = r.text(this.x - 3.0, this.y + (this.size() / 2), this.label_text).attr({
-          'text-anchor': 'end'
-        });
-      } else if (this.is_right_box()) {
-        this.label = r.text(this.x + box_width + 3.0, this.y + (this.size() / 2), this.label_text).attr({
-          'text-anchor': 'start'
-        });
-      } else {
-        this.label = r.text(this.x + (box_width / 2), this.y + (this.size() / 2), this.label_text.replace(/[^a-zA-Z0-9]/, "\n"));
-      }
+      this.label = r.text(this.labelPositionX(), this.labelPositionY(), this.descriptionLabelText()).attr(this.labelAttributes());
       if (this.ghg !== null) {
         this.emissions_circle = r.circle(this.x + box_width, this.y, 12).attr({
           'fill': (_ref = this.ghg > 0) != null ? _ref : {
@@ -424,7 +496,7 @@
           'text-anchor': 'middle'
         });
       }
-      this.number_label = r.text(this.x + (box_width / 2), this.y - 5, Math.round(this.size() / this.sankey.TWh));
+      this.number_label = r.text(this.numberLabelPositionX(), this.numberLabelPositionY(), this.valueLabelText());
       this.number_label.hide();
       return r.set().push(this.number_label, this.label, this.box).hover(this.hover_start, this.hover_end);
     };
@@ -439,8 +511,11 @@
         y: this.y,
         height: this.size()
       });
-      return this.label.attr({
-        y: this.y + (this.size() / 2)
+      this.label.attr({
+        y: this.labelPositionY()
+      });
+      return this.number_label.attr({
+        y: this.numberLabelPositionY()
       });
     };
     TransformationBox.prototype.hover_start = function() {

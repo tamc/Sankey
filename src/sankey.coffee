@@ -15,12 +15,10 @@ class Sankey
     @left_margin = 100
     # Margin to right most box
     @right_margin = 100
-    # Scale for line widths in pixels per data unit
-    @TWh = (@display_width / 1000) * 0.1 # Pixels per TWh
     # Horizontal spacing between stacks of transformation boxes
     @x_step = (@display_width - @left_margin - @right_margin) / 8
     # Vertical spacing between transformation boxes in the same column
-    @y_space = 100 * @TWh
+    @y_space = 10
     # Don't bother drawing a line or a box if its size is less than this in pixels
     @threshold_for_drawing = 0 
     # Width of transformation boxes in pixels
@@ -51,7 +49,27 @@ class Sankey
         new_line = new FlowLine(sankey,datum[0],datum[1],datum[2])
         @lines[datum[0]+"-"+datum[2]] = new_line
         @line_array.push(new_line)
+  
+  # Called to turn whatever unit the data is in into pixels for the flow lines
+  convert_flow_values_callback: (flow) ->
+    flow
 
+  # Called to turn whatever unit the data is in into a string for the flow lines labels
+  convert_flow_labels_callback: (flow) ->
+    flow
+  
+  # Called to turn whatever unit the data is in into a string for the transformation box labels
+  convert_box_value_labels_callback: (flow) ->
+    @convert_flow_labels_callback(flow)
+  
+  # This callback can be used to tweak the layout of the boxes
+  nudge_boxes_callback: () ->
+    undefined
+  
+  # This callback can be used to tweak the colouring of lines
+  nudge_colours_callback: () ->
+    undefined
+  
   stack: (x,box_names,y_box) ->
     @stacks.push { x: x, box_names: box_names, y_box: y_box }
     
@@ -81,12 +99,12 @@ class Sankey
           box.x = @left_margin + (x * @x_step)
           y = box.b() + @y_space
     
-    @nudge_boxes?.call(this)
+    @nudge_boxes_callback()
             
     for box in @box_array
       box.position_and_colour_lines()
       
-    @nudge_colours?.call(this)
+    @nudge_colours_callback()
     
     @line_array.sort( (a,b) -> 
        b.size - a.size
@@ -132,8 +150,8 @@ class Sankey
       undefined
             
 class FlowLine 
-  constructor: (@sankey,left_box_name,@energy,right_box_name) ->
-    @size = energy*@sankey.TWh
+  constructor: (@sankey,left_box_name,flow,right_box_name) ->
+    @setFlow flow
     @colour = undefined
     @ox = 0
     @oy = 0
@@ -143,24 +161,35 @@ class FlowLine
     @right_box = @sankey.find_or_create_trasformation_box(right_box_name)
     @left_box.right_lines.push(this)
     @right_box.left_lines.push(this)
-    
-  draw: (r) ->
+
+  setFlow: (flow) ->
+    @flow = flow
+    @size = @sankey.convert_flow_values_callback(@flow)
+  
+  labelText: () ->
+    @sankey.convert_flow_labels_callback(@flow)
+  
+  path: () ->
     curve = ((@dx-@ox) * @sankey.flow_curve)
-    flow_edge_width = @sankey.flow_edge_width
-    inner_colour = Raphael.rgb2hsb(@colour)
-    inner_colour.b = inner_colour.b + 0.5
-    @left_label = r.text((@ox+1),(@oy-(@size/2)-5),Math.round(@energy)).attr({'text-anchor':'start'})
-    @right_label = r.text((@dx-1),(@dy-(@size/2)-5),Math.round(@energy)).attr({'text-anchor':'end'})
+    "M "+@ox+","+@oy+" Q "+(@ox+curve)+","+@oy+" "+((@ox+@dx)/2)+","+((@oy+@dy)/2)+" Q "+(@dx-curve)+","+@dy+" "+@dx+","+@dy
+  
+  innerWidth: () ->
+    return (@size - @sankey.flow_edge_width) if @size > @sankey.flow_edge_width
+    @size
+  
+  innerColor: () ->
+    c = Raphael.rgb2hsb(@colour)
+    c.b = c.b + 0.5
+    c
+  
+  draw: (r) ->
+    @outer_line = r.path(@path()).attr({'stroke-width':@size, 'stroke':@colour})
+    @inner_line = r.path(@path()).attr({'stroke-width':@innerWidth(), 'stroke':@innerColor()})
+    r.set().push(@inner_line,@outer_line).hover(@hover_start,@hover_stop)
+    @left_label = r.text((@ox+1),(@oy-(@size/2)-5),@labelText()).attr({'text-anchor':'start'})
+    @right_label = r.text((@dx-1),(@dy-(@size/2)-5),@labelText()).attr({'text-anchor':'end'})
     @left_label.hide()
     @right_label.hide()
-    flow_path = "M "+@ox+","+@oy+" Q "+(@ox+curve)+","+@oy+" "+((@ox+@dx)/2)+","+((@oy+@dy)/2)+" Q "+(@dx-curve)+","+@dy+" "+@dx+","+@dy
-    @outer_line = r.path(flow_path).attr({'stroke':@colour,'stroke-width':@size})
-    if @size > flow_edge_width
-      inner_width = @size - flow_edge_width 
-    else
-     inner_width = @size
-    @inner_line = r.path(flow_path).attr({'stroke-width':inner_width, 'stroke':inner_colour})
-    r.set().push(@inner_line,@outer_line).hover(@hover_start,@hover_stop)
     
   hover_start: (event) =>
     @highlight(true,true)
@@ -172,15 +201,10 @@ class FlowLine
 
   redraw: (r) ->
     @draw(r) unless @outer_line? 
-    curve = ((@dx-@ox) * @sankey.flow_curve)
-    flow_edge_width = @sankey.flow_edge_width
-    flow_path = "M "+@ox+","+@oy+" Q "+(@ox+curve)+","+@oy+" "+((@ox+@dx)/2)+","+((@oy+@dy)/2)+" Q "+(@dx-curve)+","+@dy+" "+@dx+","+@dy
-    @outer_line.attr({path:flow_path,'stroke-width':@size})
-    if @size > flow_edge_width
-      inner_width = @size - flow_edge_width 
-    else
-     inner_width = @size
-    @inner_line.attr({path:flow_path, 'stroke-width':inner_width})
+    @outer_line.attr({path:@path(),'stroke-width':@size})
+    @inner_line.attr({path:@path(), 'stroke-width':@innerWidth()})
+    @left_label.attr({text:@labelText(), x:(@ox+1), y: (@oy-(@size/2)-5) })
+    @right_label.attr({text:@labelText(), x:(@dx-1), y: (@dy-(@size/2)-5) })
 
   fade_unless_highlighted: () ->
     return false unless @outer_line?
@@ -253,6 +277,17 @@ class TransformationBox
       if line.size > @sankey.threshold_for_drawing
         s = s + line.size
     return s
+  
+  flow: () ->
+    s = 0
+    if @is_left_box()
+      lines = @right_lines
+    else
+      lines = @left_lines
+    for line in lines
+      if line.size > @sankey.threshold_for_drawing
+        s = s + line.flow
+    return s    
 
   position_and_colour_lines: () ->
     ly = @y
@@ -277,21 +312,43 @@ class TransformationBox
       line.oy = ry + (line.size/2)
       ry = ry + (line.size)
 
+  valueLabelText: () ->
+    @sankey.convert_box_value_labels_callback(@flow())
+  
+  descriptionLabelText: () ->
+    return @label_text if @is_left_box()
+    return @label_text if @is_right_box()
+    @label_text.replace(/[^a-zA-Z0-9]/,"\n")
+  
+  labelPositionX: () ->
+    return @x-3.0 if @is_left_box()
+    return @x+@sankey.box_width+3.0 if @is_right_box()
+    @x+(@sankey.box_width/2)
+  
+  labelPositionY: () ->
+    @y+(@size()/2)
+    
+  labelAttributes: () ->
+    return {'text-anchor':'end'} if @is_left_box()
+    return {'text-anchor':'start'} if @is_right_box()
+    {}
+  
+  numberLabelPositionX: () ->
+    @x+(@sankey.box_width/2)
+    
+  numberLabelPositionY: () ->
+    @y-5
+  
   draw: (r) ->
     box_width = @sankey.box_width    
     @box = r.rect(@x,@y,box_width,@size()).attr({'fill':"#E8E2FF","stroke":"#D4CBF2"})
-    if @is_left_box()
-      @label = r.text(@x-3.0,@y+(@size()/2),@label_text).attr({'text-anchor':'end'})
-    else if @is_right_box()
-      @label = r.text(@x+box_width+3.0,@y+(@size()/2),@label_text).attr({'text-anchor':'start'})
-    else
-      @label = r.text(@x+(box_width/2),@y+(@size()/2),@label_text.replace(/[^a-zA-Z0-9]/,"\n"))   
+    @label = r.text(@labelPositionX(),@labelPositionY(),@descriptionLabelText()).attr(@labelAttributes())
 
     if @ghg != null
       @emissions_circle = r.circle(@x+box_width,@y,12).attr({'fill': (@ghg > 0 ? '#000' : '#0a0'),'stroke-width':0})
       @emissions_measure = r.text(@x+box_width,@y,@ghg).attr({'stroke':'#fff','text-anchor':'middle'})
   
-    @number_label = r.text(@x+(box_width/2),@y-5,Math.round(@size()/@sankey.TWh))
+    @number_label = r.text(@numberLabelPositionX(),@numberLabelPositionY(),@valueLabelText())
     @number_label.hide()
 
     r.set().push(@number_label,@label,@box).hover(@hover_start,@hover_end)
@@ -300,7 +357,8 @@ class TransformationBox
     @draw(r) unless @box?
     return unless @box?
     @box.attr({y: @y, height:@size()}) 
-    @label.attr({y: (@y+(@size()/2))})
+    @label.attr({y: @labelPositionY()})
+    @number_label.attr({y: @numberLabelPositionY()})
     
   hover_start: () =>
     @highlight()

@@ -80,7 +80,7 @@
       ]);
       
       // Nudge
-      sankey.nudge_boxes = function() {
+      sankey.nudge_boxes_callback = function() {
         sankey.boxes["Losses"].y = (sankey.boxes["Marine algae"].b() - sankey.boxes["Losses"].size());
         // sankey.boxes["Exports"].y = (sankey.boxes["Losses"].y - sankey.boxes["Exports"].size() - y_space);
         // sankey.boxes["Over generation / exports"].y = (sankey.boxes["Exports"].y - sankey.boxes["Over generation / exports"].size() - y_space);        
@@ -139,7 +139,6 @@
         "H2":"#FF6FCF" 
       });
       
-      
       // Add the emissions
       // sankey.boxes["Thermal generation"].ghg = 100;
       // sankey.boxes["CHP"].ghg = 10;
@@ -147,12 +146,26 @@
       // sankey.boxes["Heating and cooling - homes"].ghg = 20;
       
       // Fix some of the colours
-      sankey.nudge_colours = function() {
+      sankey.nudge_colours_callback = function() {
         this.recolour(this.boxes["Losses"].left_lines,"#AAAAAA");
         this.recolour(this.boxes["District heating"].left_lines,"#FF0000");
         this.recolour(this.boxes["Electricity grid"].left_lines,"#0000FF");
-      }
+      };
       
+      sankey.y_space = 20;
+      
+      sankey.convert_flow_values_callback = function(flow) {
+        return flow * 0.05; // Pixels per TWh
+      };
+      
+      sankey.convert_flow_labels_callback = function(flow) {
+        return Math.round(flow);
+      };
+      
+      sankey.convert_box_value_labels_callback = function(flow) {
+        return (""+Math.round(flow)+" TWh/y");
+      };
+
       sankey.setData(raw_data);
       sankey.draw();
     });

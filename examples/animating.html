@@ -79,13 +79,6 @@
       "Losses"
       ]);
       
-      // Nudge
-      sankey.nudge_boxes = function() {
-        sankey.boxes["Losses"].y = (sankey.boxes["Marine algae"].b() - sankey.boxes["Losses"].size());
-        // sankey.boxes["Exports"].y = (sankey.boxes["Losses"].y - sankey.boxes["Exports"].size() - y_space);
-        // sankey.boxes["Over generation / exports"].y = (sankey.boxes["Exports"].y - sankey.boxes["Over generation / exports"].size() - y_space);        
-      }
-      
       // Colours
       sankey.setColors({
         "Coal reserves":"#8F6F38",
@@ -138,26 +131,16 @@
         "Over generation / exports":"#0000FF", 
         "H2":"#FF6FCF" 
       });
-      
-      
-      // Add the emissions
-      // sankey.boxes["Thermal generation"].ghg = 100;
-      // sankey.boxes["CHP"].ghg = 10;
-      // sankey.boxes["UK land based bioenergy"].ghg = -100;
-      // sankey.boxes["Heating and cooling - homes"].ghg = 20;
-      
-      // Fix some of the colours
-      sankey.nudge_colours = function() {
-        this.recolour(this.boxes["Losses"].left_lines,"#AAAAAA");
-        this.recolour(this.boxes["District heating"].left_lines,"#FF0000");
-        this.recolour(this.boxes["Electricity grid"].left_lines,"#0000FF");
-      }
+                  
+      sankey.convert_flow_values_callback = function(flow) {
+        return flow * 0.1; // Pixels per TWh
+      };
       
       sankey.setData(raw_data);
       sankey.draw();
       
       setTimeout( function() {
-        sankey.lines["Pumped heat-Heating and cooling - homes"].size = 0
+        sankey.lines["Pumped heat-Heating and cooling - homes"].setFlow(10);
         sankey.redraw();        
       },1000)
     });
