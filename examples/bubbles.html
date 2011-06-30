@@ -14,26 +14,29 @@
       
         sankey.stack(0,["Top","Bottom"]);
         sankey.stack(1,["Merge"]);
-        sankey.stack(2,["Good","Bad","Indifferent"]);
+        sankey.stack(2,["Good","Bad"]);
       
         sankey.setData([["Top",100,"Merge"],["Bottom",50,"Merge"],["Merge",70,"Good"],["Merge",80,"Bad"]]);
-        sankey.setBubbles([["Bad",200]]);
+        
+        sankey.setBubbles([["Merge",200],["Bad",-100]])
+        
+        sankey.convert_bubble_values_callback = function(size) {
+          return size * 1.5; // Pixels per unit
+        };
+        
+        sankey.convert_bubble_labels_callback = function(size) {
+          return "<"+size;
+        }
+        
+        sankey.bubbleColor = "#0F0"
+        sankey.bubbleLabelColor = "#fff"
+        sankey.negativeBubbleColor = "#F00"
+        sankey.negativeBubbleLabelColor = "#000"
         sankey.draw();
-      
-        setTimeout( function() {
-          sankey.updateData([
-            ["Top",10,"Merge"],
-            ["Merge",10,"Good"],
-            ["Merge",30,"Bad"],
-            ["Merge",20,"Indifferent"]
-          ]);
-          sankey.setBubbles([["Bad",100]]);
-          sankey.redraw();        
-        },1000)
     });
       
     </script>
-    <h1 style='width:1000px; text-align: center; margin-bottom: 0'>An example Animating Sankey Diagram</h1>
+    <h1 style='width:1000px; text-align: center; margin-bottom: 0'>A Sankey Diagram with bubbles on transformation boxes</h1>
     <div style='width:1000px; text-align: center; margin-top: 0'>Move your mouse over the diagram to show values</div>
     <div id='sankey' style="width:1000px;height:1000px">
       &nbsp;

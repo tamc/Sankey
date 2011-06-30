@@ -19,6 +19,9 @@
       this.lines = {};
       this.line_array = [];
       this.stacks = [];
+      this.bubbles = [];
+      this.bubbleColor = '#000';
+      this.bubbleLabelColor = '#fff';
     }
     Sankey.prototype.find_or_create_trasformation_box = function(name) {
       var new_box;
@@ -50,6 +53,9 @@
       }
       return _results;
     };
+    Sankey.prototype.setBubbles = function(data) {
+      return this.bubbles = data;
+    };
     Sankey.prototype.updateData = function(data) {
       var datum, line, _i, _len, _results;
       _results = [];
@@ -68,6 +74,12 @@
     };
     Sankey.prototype.convert_box_value_labels_callback = function(flow) {
       return this.convert_flow_labels_callback(flow);
+    };
+    Sankey.prototype.convert_bubble_values_callback = function(size) {
+      return size;
+    };
+    Sankey.prototype.convert_bubble_labels_callback = function(size) {
+      return size;
     };
     Sankey.prototype.nudge_boxes_callback = function() {
       return;
@@ -115,7 +127,7 @@
       return (this.display_width - this.left_margin - this.right_margin) / maximum_x;
     };
     Sankey.prototype.position_boxes_and_lines = function() {
-      var box, name, stack, x, x_step, y, _i, _j, _k, _len, _len2, _len3, _ref, _ref2, _ref3, _ref4;
+      var box, bubble, name, stack, x, x_step, y, _i, _j, _k, _l, _len, _len2, _len3, _len4, _ref, _ref2, _ref3, _ref4, _ref5, _ref6;
       x_step = this.calculateXStep();
       _ref = this.stacks;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
@@ -142,6 +154,13 @@
       for (_k = 0, _len3 = _ref4.length; _k < _len3; _k++) {
         box = _ref4[_k];
         box.position_and_colour_lines();
+      }
+      _ref5 = this.bubbles;
+      for (_l = 0, _len4 = _ref5.length; _l < _len4; _l++) {
+        bubble = _ref5[_l];
+        if ((_ref6 = this.boxes[bubble[0]]) != null) {
+          _ref6.bubbleValue = bubble[1];
+        }
       }
       this.nudge_colours_callback();
       return this.line_array.sort(function(a, b) {
@@ -389,7 +408,7 @@
       this.right_lines = [];
       this.x = 0;
       this.y = 0;
-      this.ghg = null;
+      this.bubbleValue = null;
     }
     TransformationBox.prototype.b = function() {
       return this.y + this.size();
@@ -508,29 +527,51 @@
     TransformationBox.prototype.numberLabelPositionY = function() {
       return this.y - 5;
     };
+    TransformationBox.prototype.bubbleSize = function() {
+      return Math.sqrt(this.sankey.convert_bubble_values_callback(Math.abs(this.bubbleValue)));
+    };
+    TransformationBox.prototype.bubbleLabel = function() {
+      return this.sankey.convert_bubble_labels_callback(this.bubbleValue);
+    };
+    TransformationBox.prototype.bubbleColourForValue = function() {
+      if (this.bubbleValue > 0) {
+        return this.sankey.bubbleColor;
+      }
+      if (this.sankey.negativeBubbleColor == null) {
+        return this.sankey.bubbleColor;
+      }
+      return this.sankey.negativeBubbleColor;
+    };
+    TransformationBox.prototype.bubbleLabelColourForValue = function() {
+      if (this.bubbleValue > 0) {
+        return this.sankey.bubbleLabelColor;
+      }
+      if (this.sankey.negativeBubbleLabelColor == null) {
+        return this.sankey.bubbleLabelColor;
+      }
+      return this.sankey.negativeBubbleLabelColor;
+    };
     TransformationBox.prototype.draw = function(r) {
-      var box_width, _ref;
+      var box_width;
       box_width = this.sankey.box_width;
       this.box = r.rect(this.x, this.y, box_width, this.size()).attr({
         'fill': "#E8E2FF",
         "stroke": "#D4CBF2"
       });
       this.label = r.text(this.labelPositionX(), this.labelPositionY(), this.descriptionLabelText()).attr(this.labelAttributes());
-      if (this.ghg !== null) {
-        this.emissions_circle = r.circle(this.x + box_width, this.y, 12).attr({
-          'fill': (_ref = this.ghg > 0) != null ? _ref : {
-            '#000': '#0a0'
-          },
+      if (this.bubbleValue != null) {
+        this.bubble_circle = r.circle(this.x + box_width, this.y, this.bubbleSize()).attr({
+          'fill': this.bubbleColourForValue(),
           'stroke-width': 0
         });
-        this.emissions_measure = r.text(this.x + box_width, this.y, this.ghg).attr({
-          'stroke': '#fff',
+        this.bubble_label = r.text(this.x + box_width, this.y, this.bubbleLabel()).attr({
+          'stroke': this.bubbleLabelColourForValue(),
           'text-anchor': 'middle'
         });
       }
       this.number_label = r.text(this.numberLabelPositionX(), this.numberLabelPositionY(), this.valueLabelText());
       this.number_label.hide();
-      return r.set().push(this.number_label, this.label, this.box).hover(this.hover_start, this.hover_end);
+      return r.set().push(this.number_label, this.label, this.box, this.bubble_circle, this.bubble_label).hover(this.hover_start, this.hover_end);
     };
     TransformationBox.prototype.redraw = function(r) {
       if (this.box == null) {
@@ -546,9 +587,25 @@
       this.label.attr({
         y: this.labelPositionY()
       });
-      return this.number_label.attr({
+      this.number_label.attr({
         y: this.numberLabelPositionY()
       });
+      if (this.bubbleValue != null) {
+        if (this.bubble_circle != null) {
+          this.bubble_circle.attr({
+            cy: this.y,
+            r: this.bubbleSize(),
+            fill: this.bubbleColourForValue()
+          });
+          return this.bubble_label.attr({
+            y: this.y,
+            text: this.bubbleLabel(),
+            'stroke': this.bubbleLabelColourForValue()
+          });
+        } else {
+          return this.draw(r);
+        }
+      }
     };
     TransformationBox.prototype.hover_start = function() {
       var line, _i, _j, _len, _len2, _ref, _ref2;
@@ -605,9 +662,19 @@
       this.box.attr({
         'opacity': '0.1'
       });
-      return this.label.attr({
+      this.label.attr({
         'opacity': '0.1'
       });
+      if (this.bubble_circle != null) {
+        this.bubble_circle.attr({
+          'opacity': '0.1'
+        });
+      }
+      if (this.bubble_label != null) {
+        return this.bubble_label.attr({
+          'opacity': '0.1'
+        });
+      }
     };
     TransformationBox.prototype.un_fade = function() {
       if (this.box == null) {
@@ -619,9 +686,19 @@
       this.box.attr({
         'opacity': '1.0'
       });
-      return this.label.attr({
+      this.label.attr({
         'opacity': '1.0'
       });
+      if (this.bubble_circle != null) {
+        this.bubble_circle.attr({
+          'opacity': '1.0'
+        });
+      }
+      if (this.bubble_label != null) {
+        return this.bubble_label.attr({
+          'opacity': '1.0'
+        });
+      }
     };
     return TransformationBox;
   })();

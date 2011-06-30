@@ -33,6 +33,10 @@ class Sankey
     @line_array = []
     # Stores the organisation of the diagram
     @stacks = []
+    # Stores the bubbles that can be drawn on transformation boxes
+    @bubbles = []
+    @bubbleColor = '#000'
+    @bubbleLabelColor = '#fff'
   
   find_or_create_trasformation_box: (name) ->
     unless @boxes[name]?
@@ -53,7 +57,10 @@ class Sankey
   setData: (data) ->
     for datum in data
       @createLine(datum)
-  
+    
+  setBubbles: (data) ->
+    @bubbles = data
+      
   updateData: (data) ->
     for datum in data
       line = @lines[@lineName(datum[0],datum[2])]
@@ -73,6 +80,14 @@ class Sankey
   # Called to turn whatever unit the data is in into a string for the transformation box labels
   convert_box_value_labels_callback: (flow) ->
     @convert_flow_labels_callback(flow)
+  
+  # Called to turn whatever unit the bubble values are in into pixels
+  convert_bubble_values_callback: (size) ->
+    size
+  
+  # Called to turn the bubble value into a label for the bubble
+  convert_bubble_labels_callback: (size) ->
+    size
   
   # This callback can be used to tweak the layout of the boxes
   nudge_boxes_callback: () ->
@@ -123,6 +138,9 @@ class Sankey
             
     for box in @box_array
       box.position_and_colour_lines()
+    
+    for bubble in @bubbles
+      @boxes[bubble[0]]?.bubbleValue = bubble[1]
       
     @nudge_colours_callback()
     
@@ -276,7 +294,7 @@ class TransformationBox
     @right_lines = []
     @x = 0
     @y = 0
-    @ghg = null
+    @bubbleValue = null
 
   b: () -> 
     @y + @size()
@@ -358,20 +376,36 @@ class TransformationBox
     
   numberLabelPositionY: () ->
     @y-5
+    
+  bubbleSize: () ->
+    Math.sqrt(@sankey.convert_bubble_values_callback(Math.abs(@bubbleValue)))
+    
+  bubbleLabel: () ->
+    @sankey.convert_bubble_labels_callback(@bubbleValue)
+  
+  bubbleColourForValue: () ->
+    return @sankey.bubbleColor if @bubbleValue > 0
+    return @sankey.bubbleColor unless @sankey.negativeBubbleColor?
+    @sankey.negativeBubbleColor
+  
+  bubbleLabelColourForValue: () ->
+    return @sankey.bubbleLabelColor if @bubbleValue > 0
+    return @sankey.bubbleLabelColor unless @sankey.negativeBubbleLabelColor?
+    @sankey.negativeBubbleLabelColor
   
   draw: (r) ->
     box_width = @sankey.box_width    
     @box = r.rect(@x,@y,box_width,@size()).attr({'fill':"#E8E2FF","stroke":"#D4CBF2"})
     @label = r.text(@labelPositionX(),@labelPositionY(),@descriptionLabelText()).attr(@labelAttributes())
 
-    if @ghg != null
-      @emissions_circle = r.circle(@x+box_width,@y,12).attr({'fill': (@ghg > 0 ? '#000' : '#0a0'),'stroke-width':0})
-      @emissions_measure = r.text(@x+box_width,@y,@ghg).attr({'stroke':'#fff','text-anchor':'middle'})
+    if @bubbleValue?
+      @bubble_circle = r.circle(@x+box_width,@y,@bubbleSize()).attr({'fill': @bubbleColourForValue(),'stroke-width':0})
+      @bubble_label = r.text(@x+box_width,@y,@bubbleLabel()).attr({'stroke': @bubbleLabelColourForValue(),'text-anchor':'middle'})
   
     @number_label = r.text(@numberLabelPositionX(),@numberLabelPositionY(),@valueLabelText())
     @number_label.hide()
 
-    r.set().push(@number_label,@label,@box).hover(@hover_start,@hover_end)
+    r.set().push(@number_label,@label,@box,@bubble_circle,@bubble_label).hover(@hover_start,@hover_end)
   
   redraw: (r) ->
     @draw(r) unless @box?
@@ -379,6 +413,12 @@ class TransformationBox
     @box.attr({y: @y, height:@size()}) 
     @label.attr({y: @labelPositionY()})
     @number_label.attr({y: @numberLabelPositionY()})
+    if @bubbleValue?
+      if @bubble_circle?
+        @bubble_circle.attr(cy:@y,r:@bubbleSize(),fill:@bubbleColourForValue())
+        @bubble_label.attr(y:@y,text:@bubbleLabel(),'stroke':@bubbleLabelColourForValue())
+      else
+        @draw(r)
     
   hover_start: () =>
     @highlight()
@@ -418,12 +458,17 @@ class TransformationBox
     return false if @highlighed is true
     @box.attr({'opacity':'0.1'})
     @label.attr({'opacity':'0.1'})
+    @bubble_circle.attr({'opacity':'0.1'}) if @bubble_circle?
+    @bubble_label.attr({'opacity':'0.1'}) if @bubble_label?
 
   un_fade: () ->
     return false unless @box?
     return false if @highlighed is true
     @box.attr({'opacity':'1.0'})
     @label.attr({'opacity':'1.0'})
+    @bubble_circle.attr({'opacity':'1.0'}) if @bubble_circle?
+    @bubble_label.attr({'opacity':'1.0'}) if @bubble_label?
+    
 
 window.Sankey = Sankey
   
