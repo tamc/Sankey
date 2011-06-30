@@ -5,6 +5,9 @@ DEPENDENCIES
 raphael.js
 jquery.js
 
+OPTIONAL
+jquery-ui.js
+
 USAGE
 
 For the moment, see files in the examples folder
