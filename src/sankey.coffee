@@ -38,7 +38,7 @@ class Sankey
     @bubbleColor = '#000'
     @bubbleLabelColor = '#fff'
   
-  find_or_create_trasformation_box: (name) ->
+  find_or_create_transformation_box: (name) ->
     unless @boxes[name]?
       new_box = new TransformationBox(sankey,name)
       @boxes[name] = new_box
@@ -102,7 +102,7 @@ class Sankey
     
   setColors: (colors) ->
     for own box_name, color of colors
-      box = @find_or_create_trasformation_box(box_name)
+      box = @find_or_create_transformation_box(box_name)
       box.line_colour = colors[box.name] || box.line_colour
   
   recolour: (lines,new_colour) ->
@@ -195,8 +195,8 @@ class FlowLine
     @oy = 0
     @dx = 0
     @dy = 0
-    @left_box = @sankey.find_or_create_trasformation_box(left_box_name)
-    @right_box = @sankey.find_or_create_trasformation_box(right_box_name)
+    @left_box = @sankey.find_or_create_transformation_box(left_box_name)
+    @right_box = @sankey.find_or_create_transformation_box(right_box_name)
     @left_box.right_lines.push(this)
     @right_box.left_lines.push(this)
 

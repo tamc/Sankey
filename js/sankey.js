@@ -23,7 +23,7 @@
       this.bubbleColor = '#000';
       this.bubbleLabelColor = '#fff';
     }
-    Sankey.prototype.find_or_create_trasformation_box = function(name) {
+    Sankey.prototype.find_or_create_transformation_box = function(name) {
       var new_box;
       if (this.boxes[name] == null) {
         new_box = new TransformationBox(sankey, name);
@@ -100,7 +100,7 @@
       for (box_name in colors) {
         if (!__hasProp.call(colors, box_name)) continue;
         color = colors[box_name];
-        box = this.find_or_create_trasformation_box(box_name);
+        box = this.find_or_create_transformation_box(box_name);
         _results.push(box.line_colour = colors[box.name] || box.line_colour);
       }
       return _results;
@@ -248,8 +248,8 @@
       this.oy = 0;
       this.dx = 0;
       this.dy = 0;
-      this.left_box = this.sankey.find_or_create_trasformation_box(left_box_name);
-      this.right_box = this.sankey.find_or_create_trasformation_box(right_box_name);
+      this.left_box = this.sankey.find_or_create_transformation_box(left_box_name);
+      this.right_box = this.sankey.find_or_create_transformation_box(right_box_name);
       this.left_box.right_lines.push(this);
       this.right_box.left_lines.push(this);
     }

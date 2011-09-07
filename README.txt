@@ -14,7 +14,7 @@ For the moment, see files in the examples folder
 
 HACKING
 
-The javascript is written in Coffescript in the src directory.
+The javascript is written in CoffeeScript in the src directory.
 
 The canonical code is at:
 http://github.com/tamc/sankey
