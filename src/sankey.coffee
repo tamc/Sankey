@@ -40,7 +40,7 @@ class Sankey
   
   find_or_create_transformation_box: (name) ->
     unless @boxes[name]?
-      new_box = new TransformationBox(sankey,name)
+      new_box = new TransformationBox(this,name)
       @boxes[name] = new_box
       @box_array.push(new_box)
     return @boxes[name]
@@ -50,7 +50,7 @@ class Sankey
   
   createLine: (datum) ->
     return if datum[0] == 0
-    new_line = new FlowLine(sankey,datum[0],datum[1],datum[2])
+    new_line = new FlowLine(this,datum[0],datum[1],datum[2])
     @lines[@lineName(datum[0],datum[2])] = new_line
     @line_array.push(new_line)
   

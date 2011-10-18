@@ -26,7 +26,7 @@
     Sankey.prototype.find_or_create_transformation_box = function(name) {
       var new_box;
       if (this.boxes[name] == null) {
-        new_box = new TransformationBox(sankey, name);
+        new_box = new TransformationBox(this, name);
         this.boxes[name] = new_box;
         this.box_array.push(new_box);
       }
@@ -40,7 +40,7 @@
       if (datum[0] === 0) {
         return;
       }
-      new_line = new FlowLine(sankey, datum[0], datum[1], datum[2]);
+      new_line = new FlowLine(this, datum[0], datum[1], datum[2]);
       this.lines[this.lineName(datum[0], datum[2])] = new_line;
       return this.line_array.push(new_line);
     };
@@ -473,11 +473,9 @@
       _results = [];
       for (_j = 0, _len2 = right_lines.length; _j < _len2; _j++) {
         line = right_lines[_j];
-                if ((_ref = line.colour) != null) {
-          _ref;
-        } else {
+        if ((_ref = line.colour) == null) {
           line.colour = this.line_colour;
-        };
+        }
         line.ox = this.x + box_width;
         line.oy = ry + (line.size / 2);
         _results.push(ry = ry + line.size);
