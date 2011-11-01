@@ -75,6 +75,9 @@
     Sankey.prototype.convert_box_value_labels_callback = function(flow) {
       return this.convert_flow_labels_callback(flow);
     };
+    Sankey.prototype.convert_box_description_labels_callback = function(name) {
+      return name;
+    };
     Sankey.prototype.convert_bubble_values_callback = function(size) {
       return size;
     };
@@ -402,7 +405,9 @@
       this.name = name;
       this.hover_end = __bind(this.hover_end, this);
       this.hover_start = __bind(this.hover_start, this);
-      this.label_text = name;
+      console.log(this.name);
+      console.log(this.sankey.convert_box_description_labels_callback);
+      this.label_text = this.sankey.convert_box_description_labels_callback(name);
       this.line_colour = "orange";
       this.left_lines = [];
       this.right_lines = [];

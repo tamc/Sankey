@@ -81,6 +81,10 @@ class Sankey
   convert_box_value_labels_callback: (flow) ->
     @convert_flow_labels_callback(flow)
   
+  # Called to turn the names of transformation boxes into labels
+  convert_box_description_labels_callback: (name) ->
+    name
+  
   # Called to turn whatever unit the bubble values are in into pixels
   convert_bubble_values_callback: (size) ->
     size
@@ -288,7 +292,9 @@ class FlowLine
 class TransformationBox
   
   constructor: (@sankey,@name) ->
-    @label_text = name
+    console.log @name
+    console.log @sankey.convert_box_description_labels_callback
+    @label_text = @sankey.convert_box_description_labels_callback(name)
     @line_colour = "orange"
     @left_lines = []
     @right_lines = []
