@@ -1,3 +1,8 @@
+###
+Source, bug reports, examples: https://github.com/tamc/Sankey
+Copyright: Thomas Counsell 2010, 2011
+Licence: MIT Open Source licence http://www.opensource.org/licenses/mit-license.php
+###
 class Sankey
 
   constructor: () ->

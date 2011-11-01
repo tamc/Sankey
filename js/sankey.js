@@ -1,4 +1,9 @@
 (function() {
+  /*
+  Source, bug reports, examples: https://github.com/tamc/Sankey
+  Copyright: Thomas Counsell 2010, 2011
+  Licence: MIT Open Source licence http://www.opensource.org/licenses/mit-license.php
+  */
   var FlowLine, Sankey, TransformationBox;
   var __hasProp = Object.prototype.hasOwnProperty, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   Sankey = (function() {
