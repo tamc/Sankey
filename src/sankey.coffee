@@ -405,7 +405,8 @@ class TransformationBox
     @sankey.negativeBubbleLabelColor
   
   draw: (r) ->
-    box_width = @sankey.box_width    
+    return false unless @size() > @sankey.threshold_for_drawing
+    box_width = @sankey.box_width
     @box = r.rect(@x,@y,box_width,@size()).attr({'fill':"#E8E2FF","stroke":"#D4CBF2"})
     @label = r.text(@labelPositionX(),@labelPositionY(),@descriptionLabelText()).attr(@labelAttributes())
 
@@ -430,6 +431,14 @@ class TransformationBox
         @bubble_label.attr(y:@y,text:@bubbleLabel(),'stroke':@bubbleLabelColourForValue())
       else
         @draw(r)
+    if @size() <= @sankey.threshold_for_drawing
+      @box.hide()
+      @label.hide()
+      @bubble_circle.hide() if @bubble_circle?
+    else
+      @box.show()
+      @label.show()
+      @bubble_circle.show() if @bubble_circle?
     
   hover_start: () =>
     @highlight()

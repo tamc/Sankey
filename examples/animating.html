@@ -12,20 +12,22 @@
       $(document).ready(function() {
         sankey = new Sankey();
       
-        sankey.stack(0,["Top","Bottom"]);
+        sankey.stack(0,["Top","Bottom","Even lower than bottom"]);
         sankey.stack(1,["Merge"]);
-        sankey.stack(2,["Good","Bad","Indifferent"]);
+        sankey.stack(2,["Good","Bad","Indifferent","Not even indifferent"]);
       
-        sankey.setData([["Top",100,"Merge"],["Bottom",50,"Merge"],["Merge",70,"Good"],["Merge",80,"Bad"]]);
+        sankey.setData([["Top",100,"Merge"],["Bottom",50,"Merge"],["Even lower than bottom",30,"Merge"],["Merge",70,"Good"],["Merge",110,"Bad"]]);
         sankey.setBubbles([["Bad",200]]);
         sankey.draw();
       
         setTimeout( function() {
           sankey.updateData([
             ["Top",10,"Merge"],
+            ["Even lower than bottom",0,"Merge"],
             ["Merge",10,"Good"],
             ["Merge",30,"Bad"],
-            ["Merge",20,"Indifferent"]
+            ["Merge",10,"Indifferent"],
+            ["Merge",10,"Not even indifferent"]
           ]);
           sankey.setBubbles([["Bad",100]]);
           sankey.redraw();        

@@ -561,6 +561,9 @@
     };
     TransformationBox.prototype.draw = function(r) {
       var box_width;
+      if (!(this.size() > this.sankey.threshold_for_drawing)) {
+        return false;
+      }
       box_width = this.sankey.box_width;
       this.box = r.rect(this.x, this.y, box_width, this.size()).attr({
         'fill': "#E8E2FF",
@@ -605,13 +608,26 @@
             r: this.bubbleSize(),
             fill: this.bubbleColourForValue()
           });
-          return this.bubble_label.attr({
+          this.bubble_label.attr({
             y: this.y,
             text: this.bubbleLabel(),
             'stroke': this.bubbleLabelColourForValue()
           });
         } else {
-          return this.draw(r);
+          this.draw(r);
+        }
+      }
+      if (this.size() <= this.sankey.threshold_for_drawing) {
+        this.box.hide();
+        this.label.hide();
+        if (this.bubble_circle != null) {
+          return this.bubble_circle.hide();
+        }
+      } else {
+        this.box.show();
+        this.label.show();
+        if (this.bubble_circle != null) {
+          return this.bubble_circle.show();
         }
       }
     };
