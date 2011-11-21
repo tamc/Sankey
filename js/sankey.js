@@ -282,8 +282,14 @@
     FlowLine.prototype.innerColor = function() {
       var c;
       c = Raphael.rgb2hsb(this.colour);
-      c.b = c.b + 0.5;
-      return c;
+      if (c.h !== 0 && c.s !== 0) {
+        if (c.b > 0.5) {
+          c.b = c.b - 0.15;
+        } else {
+          c.b = c.b + 0.15;
+        }
+      }
+      return Raphael.hsb2rgb(c.h, c.s, c.b);
     };
     FlowLine.prototype.draw = function(r) {
       this.outer_line = r.path(this.path()).attr({
@@ -410,8 +416,6 @@
       this.name = name;
       this.hover_end = __bind(this.hover_end, this);
       this.hover_start = __bind(this.hover_start, this);
-      console.log(this.name);
-      console.log(this.sankey.convert_box_description_labels_callback);
       this.label_text = this.sankey.convert_box_description_labels_callback(name);
       this.line_colour = "orange";
       this.left_lines = [];

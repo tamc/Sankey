@@ -226,8 +226,12 @@ class FlowLine
   
   innerColor: () ->
     c = Raphael.rgb2hsb(@colour)
-    c.b = c.b + 0.5
-    c
+    if c.h != 0 && c.s != 0
+      if c.b > 0.5
+        c.b = c.b - 0.15
+      else
+        c.b = c.b + 0.15
+    Raphael.hsb2rgb(c.h,c.s,c.b)
   
   draw: (r) ->
     @outer_line = r.path(@path()).attr({'stroke-width':@size, 'stroke':@colour})
@@ -297,8 +301,6 @@ class FlowLine
 class TransformationBox
   
   constructor: (@sankey,@name) ->
-    console.log @name
-    console.log @sankey.convert_box_description_labels_callback
     @label_text = @sankey.convert_box_description_labels_callback(name)
     @line_colour = "orange"
     @left_lines = []
