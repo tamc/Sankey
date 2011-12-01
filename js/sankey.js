@@ -603,7 +603,8 @@
         y: this.labelPositionY()
       });
       this.number_label.attr({
-        y: this.numberLabelPositionY()
+        y: this.numberLabelPositionY(),
+        text: this.valueLabelText()
       });
       if (this.bubbleValue != null) {
         if (this.bubble_circle != null) {

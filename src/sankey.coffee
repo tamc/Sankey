@@ -69,7 +69,7 @@ class Sankey
   updateData: (data) ->
     for datum in data
       line = @lines[@lineName(datum[0],datum[2])]
-      if line        
+      if line
         line.setFlow(datum[1])
       else
         @createLine(datum)
@@ -426,7 +426,7 @@ class TransformationBox
     return unless @box?
     @box.attr({y: @y, height:@size()}) 
     @label.attr({y: @labelPositionY()})
-    @number_label.attr({y: @numberLabelPositionY()})
+    @number_label.attr({y: @numberLabelPositionY(),text:@valueLabelText()})
     if @bubbleValue?
       if @bubble_circle?
         @bubble_circle.attr(cy:@y,r:@bubbleSize(),fill:@bubbleColourForValue())
