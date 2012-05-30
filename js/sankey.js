@@ -500,13 +500,7 @@
       return this.sankey.convert_box_value_labels_callback(this.flow());
     };
     TransformationBox.prototype.descriptionLabelText = function() {
-      if (this.is_left_box()) {
-        return this.label_text;
-      }
-      if (this.is_right_box()) {
-        return this.label_text;
-      }
-      return this.label_text.replace(/[^a-zA-Z0-9]/, "\n");
+      return this.label_text;
     };
     TransformationBox.prototype.labelPositionX = function() {
       if (this.is_left_box()) {

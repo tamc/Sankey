@@ -367,9 +367,7 @@ class TransformationBox
     @sankey.convert_box_value_labels_callback(@flow())
   
   descriptionLabelText: () ->
-    return @label_text if @is_left_box()
-    return @label_text if @is_right_box()
-    @label_text.replace(/[^a-zA-Z0-9]/,"\n")
+    @label_text
   
   labelPositionX: () ->
     return @x-3.0 if @is_left_box()
