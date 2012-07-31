@@ -10,7 +10,7 @@
   <body>
     <script type='text/javascript'>
       $(document).ready(function() {
-        sankey = new Sankey();
+        var sankey = new Sankey();
       
         sankey.stack(0,["Top","Bottom"]);
         sankey.stack(1,["Merge"]);
@@ -25,7 +25,7 @@
         };
         
         sankey.convert_bubble_labels_callback = function(size) {
-          return "<"+size;
+          return "c. "+size;
         }
         
         sankey.bubbleColor = "#0F0"
