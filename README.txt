@@ -5,6 +5,13 @@ A javascript library for drawing Sankey diagrams.
 The canonical code is at:
 http://github.com/tamc/sankey
 
+## Similar tools
+
+This sankey diagram generator uses the Raphael library and therefore the diagrams work in older versions of Internet Explorer.
+
+If you are happy for your diagrams to work only with the latest generation of browsers, then take a look at:
+http://bost.ocks.org/mike/sankey/
+
 ## DEPENDENCIES
 
 1. raphael.js
