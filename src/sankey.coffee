@@ -75,16 +75,16 @@ class Sankey
         @createLine(datum)
   
   # Called to turn whatever unit the data is in into pixels for the flow lines
-  convert_flow_values_callback: (flow) ->
+  convert_flow_values_callback: (flow, flowline) ->
     flow
 
   # Called to turn whatever unit the data is in into a string for the flow lines labels
-  convert_flow_labels_callback: (flow) ->
+  convert_flow_labels_callback: (flow, flowline, transformationbox) ->
     flow
   
   # Called to turn whatever unit the data is in into a string for the transformation box labels
-  convert_box_value_labels_callback: (flow) ->
-    @convert_flow_labels_callback(flow)
+  convert_box_value_labels_callback: (flow, transformationbox) ->
+    @convert_flow_labels_callback(flow, undefined, transformationbox)
   
   # Called to turn the names of transformation boxes into labels
   convert_box_description_labels_callback: (name) ->
@@ -196,7 +196,7 @@ class Sankey
       box.un_fade()
       undefined
             
-class FlowLine 
+class FlowLine
   constructor: (@sankey,left_box_name,flow,right_box_name) ->
     @setFlow flow
     @colour = undefined
@@ -211,10 +211,10 @@ class FlowLine
 
   setFlow: (flow) ->
     @flow = flow
-    @size = @sankey.convert_flow_values_callback(@flow)
+    @size = @sankey.convert_flow_values_callback(@flow, @)
   
-  labelText: () ->
-    @sankey.convert_flow_labels_callback(@flow)
+  labelText: (transformationbox) ->
+    @sankey.convert_flow_labels_callback(@flow, @, transformationbox)
   
   path: () ->
     curve = ((@dx-@ox) * @sankey.flow_curve)
@@ -237,8 +237,8 @@ class FlowLine
     @outer_line = r.path(@path()).attr({'stroke-width':@size, 'stroke':@colour})
     @inner_line = r.path(@path()).attr({'stroke-width':@innerWidth(), 'stroke':@innerColor()})
     r.set().push(@inner_line,@outer_line).hover(@hover_start,@hover_stop)
-    @left_label = r.text((@ox+1),(@oy-(@size/2)-5),@labelText()).attr({'text-anchor':'start'})
-    @right_label = r.text((@dx-1),(@dy-(@size/2)-5),@labelText()).attr({'text-anchor':'end'})
+    @left_label = r.text((@ox+1),(@oy-(@size/2)-5),@labelText(@left_box)).attr({'text-anchor':'start'})
+    @right_label = r.text((@dx-1),(@dy-(@size/2)-5),@labelText(@right_box)).attr({'text-anchor':'end'})
     @left_label.hide()
     @right_label.hide()
     
@@ -364,7 +364,7 @@ class TransformationBox
       ry = ry + (line.size)
 
   valueLabelText: () ->
-    @sankey.convert_box_value_labels_callback(@flow())
+    @sankey.convert_box_value_labels_callback(@flow(),@)
   
   descriptionLabelText: () ->
     @label_text
@@ -490,5 +490,5 @@ class TransformationBox
     @bubble_label.attr({'opacity':'1.0'}) if @bubble_label?
     
 
+Sankey.FlowLine = FlowLine
 window.Sankey = Sankey
-  

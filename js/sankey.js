@@ -71,14 +71,14 @@
       }
       return _results;
     };
-    Sankey.prototype.convert_flow_values_callback = function(flow) {
+    Sankey.prototype.convert_flow_values_callback = function(flow, flowline) {
       return flow;
     };
-    Sankey.prototype.convert_flow_labels_callback = function(flow) {
+    Sankey.prototype.convert_flow_labels_callback = function(flow, flowline, transformationbox) {
       return flow;
     };
-    Sankey.prototype.convert_box_value_labels_callback = function(flow) {
-      return this.convert_flow_labels_callback(flow);
+    Sankey.prototype.convert_box_value_labels_callback = function(flow, transformationbox) {
+      return this.convert_flow_labels_callback(flow, void 0, transformationbox);
     };
     Sankey.prototype.convert_box_description_labels_callback = function(name) {
       return name;
@@ -263,10 +263,10 @@
     }
     FlowLine.prototype.setFlow = function(flow) {
       this.flow = flow;
-      return this.size = this.sankey.convert_flow_values_callback(this.flow);
+      return this.size = this.sankey.convert_flow_values_callback(this.flow, this);
     };
-    FlowLine.prototype.labelText = function() {
-      return this.sankey.convert_flow_labels_callback(this.flow);
+    FlowLine.prototype.labelText = function(transformationbox) {
+      return this.sankey.convert_flow_labels_callback(this.flow, this, transformationbox);
     };
     FlowLine.prototype.path = function() {
       var curve;
@@ -301,10 +301,10 @@
         'stroke': this.innerColor()
       });
       r.set().push(this.inner_line, this.outer_line).hover(this.hover_start, this.hover_stop);
-      this.left_label = r.text(this.ox + 1, this.oy - (this.size / 2) - 5, this.labelText()).attr({
+      this.left_label = r.text(this.ox + 1, this.oy - (this.size / 2) - 5, this.labelText(this.left_box)).attr({
         'text-anchor': 'start'
       });
-      this.right_label = r.text(this.dx - 1, this.dy - (this.size / 2) - 5, this.labelText()).attr({
+      this.right_label = r.text(this.dx - 1, this.dy - (this.size / 2) - 5, this.labelText(this.right_box)).attr({
         'text-anchor': 'end'
       });
       this.left_label.hide();
@@ -497,7 +497,7 @@
       return _results;
     };
     TransformationBox.prototype.valueLabelText = function() {
-      return this.sankey.convert_box_value_labels_callback(this.flow());
+      return this.sankey.convert_box_value_labels_callback(this.flow(), this);
     };
     TransformationBox.prototype.descriptionLabelText = function() {
       return this.label_text;
@@ -725,5 +725,6 @@
     };
     return TransformationBox;
   })();
+  Sankey.FlowLine = FlowLine;
   window.Sankey = Sankey;
 }).call(this);
