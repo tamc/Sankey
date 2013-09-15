@@ -9,9 +9,9 @@ class Sankey
     # The id of the element to draw the sankey in, defaults to sankey
     @display_in_element = 'sankey' 
     # The width of the sankey diagram, defaults to the width of the element
-    @display_width = $('#sankey').width() # pixels
+    @display_width = $("##{@display_in_element}").width() # pixels
     # The height of the sankey diagram, defaults to the height of the element
-    @display_height = $('#sankey').height() # pixels
+    @display_height = $("##{@display_in_element}").height() # pixels
     
     # And here is the Raphael drawing element filling that space
     @r = Raphael(@display_in_element,@display_width,@display_height)
@@ -42,7 +42,9 @@ class Sankey
     @bubbles = []
     @bubbleColor = '#000'
     @bubbleLabelColor = '#fff'
-  
+    @opacity = '1.0'
+    @opacity_highlight = '0.1'
+
   find_or_create_transformation_box: (name) ->
     unless @boxes[name]?
       new_box = new TransformationBox(this,name)
@@ -261,15 +263,15 @@ class FlowLine
     return false unless @outer_line?
     return false unless @inner_line?
     return false if @highlighed is true
-    @outer_line.attr({'opacity':'0.1'})
-    @inner_line.attr({'opacity':'0.1'})
+    @outer_line.attr({'opacity': @sankey.opacity_highlight})
+    @inner_line.attr({'opacity': @sankey.opacity_highlight})
 
   un_fade: () ->
     return false unless @outer_line?
     return false unless @inner_line?
     return false if @highlighed is true
-    @outer_line.attr({'opacity':'1.0'})
-    @inner_line.attr({'opacity':'1.0'})
+    @outer_line.attr({'opacity': @sankey.opacity})
+    @inner_line.attr({'opacity': @sankey.opacity})
 
   highlight: (left,right) ->
     return false unless @outer_line?
@@ -476,18 +478,18 @@ class TransformationBox
   fade_unless_highlighted: () ->
     return false unless @box?
     return false if @highlighed is true
-    @box.attr({'opacity':'0.1'})
-    @label.attr({'opacity':'0.1'})
-    @bubble_circle.attr({'opacity':'0.1'}) if @bubble_circle?
-    @bubble_label.attr({'opacity':'0.1'}) if @bubble_label?
+    @box.attr({'opacity': @sankey.opacity_highlight})
+    @label.attr({'opacity': @sankey.opacity_highlight})
+    @bubble_circle.attr({'opacity': @sankey.opacity_highlight}) if @bubble_circle?
+    @bubble_label.attr({'opacity': @sankey.opacity_highlight}) if @bubble_label?
 
   un_fade: () ->
     return false unless @box?
     return false if @highlighed is true
-    @box.attr({'opacity':'1.0'})
-    @label.attr({'opacity':'1.0'})
-    @bubble_circle.attr({'opacity':'1.0'}) if @bubble_circle?
-    @bubble_label.attr({'opacity':'1.0'}) if @bubble_label?
+    @box.attr({'opacity': @sankey.opacity})
+    @label.attr({'opacity': @sankey.opacity})
+    @bubble_circle.attr({'opacity': @sankey.opacity}) if @bubble_circle?
+    @bubble_label.attr({'opacity': @sankey.opacity}) if @bubble_label?
     
 
 window.Sankey = Sankey
