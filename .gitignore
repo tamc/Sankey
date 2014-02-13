@@ -1,0 +1,8 @@
+.idea
+.DS_STORE
+.project
+\#*
+ignore_*
+.sass-cache/*
+.sass-cache
+*\~
