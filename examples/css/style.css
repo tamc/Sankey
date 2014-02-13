@@ -1,0 +1,11 @@
+/*
+ because without a transition on these users will have a seizures.
+*/
+*{
+
+	-webkit-transition: all 0.75s;
+	-moz-transition: all 0.75s;
+	-ms-transition: all 0.75s;
+	-o-transition: all 0.75s;
+	transition: all 0.75s;
+}
